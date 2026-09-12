@@ -1,9 +1,18 @@
 <!--
-  Template de ficha de tarefa por épico.
-  Copie este arquivo para .claude/docs/features/<ID>-<slug>.md (ex.: F1-E02-matricula-turmas.md)
-  e preencha cada seção. O objetivo desta ficha é ser AUTOCONTIDA: um agente deve
-  conseguir implementar o épico lendo só CLAUDE.md + a(s) arquitetura(s) relevante(s)
-  + esta ficha — sem precisar abrir BACKLOG.md/ROADMAP.md.
+  Template de SPEC (nível de implementação) para um épico já com epic.md pronto.
+  Use este template no próximo passo do fluxo: depois que o épico tem sua pasta
+  (.claude/docs/features/<ID>-<slug>/epic.md), copie este arquivo para dentro
+  dela, ex.: .claude/docs/features/F1-E02-matricula-rematricula/spec-matricula.md
+  (uma spec por fatia implementável do épico, se ele for grande demais para 1 spec).
+
+  Como o arquivo passa a viver 1 nível mais profundo que este template (que está
+  em .claude/docs/features/), ajuste os links relativos em +1 nível ao copiar
+  (ex.: ../../BACKLOG.md -> ../../../BACKLOG.md), seguindo o mesmo padrão usado em
+  F1-E00-bootstrap/epic.md e F1-E01-cadastros-sis/epic.md.
+
+  O objetivo desta spec é ser AUTOCONTIDA: um agente deve conseguir implementar
+  lendo só CLAUDE.md + a(s) arquitetura(s) relevante(s) + esta spec — sem precisar
+  abrir BACKLOG.md/ROADMAP.md.
 -->
 
 # `<ID>` — `<Título do épico>`

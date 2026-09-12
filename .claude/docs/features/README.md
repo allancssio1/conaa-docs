@@ -1,58 +1,60 @@
 # Índice de fichas de tarefa
 
-Cada linha é uma unidade implementável (1 ficha = 1 épico, granularidade acordada). **Para implementar, siga o protocolo em [`CLAUDE.md`](../../../CLAUDE.md)** — não é necessário ler `BACKLOG.md`/`ROADMAP.md` para codar, só para planejar/priorizar.
+Cada épico tem uma pasta própria (`<ID>-<slug>/`) contendo `epic.md` (planejamento) e, quando especificado, uma ou mais specs (`spec-*.md`, nível de implementação). **Para implementar, siga o protocolo em [`CLAUDE.md`](../../../CLAUDE.md)** — não é necessário ler `BACKLOG.md`/`ROADMAP.md` para codar, só para planejar/priorizar.
 
-**Status:**
-- 🟢 `pronta` — ficha escrita, pode ser implementada.
-- ⚪ `planejada` — existe no ROADMAP/BACKLOG, ficha ainda não foi detalhada. Peça para criá-la antes de implementar.
+**Ciclo de status:**
+- ⚪ `épico` — só o planejamento (`epic.md`) existe. Não implementar direto: primeiro quebrar em specs.
+- 🔵 `especificado` — tem spec(s) de implementação pronta(s) na pasta. Pode implementar.
+- 🟢 `implementado` — código já existe em `apps/api`/`apps/web` para este épico.
 
 ## Fundação
 
 | ID | Título | Camadas | Status | Depende de |
 | --- | --- | --- | --- | --- |
-| [F1-E00](F1-E00-bootstrap.md) | Bootstrap do monorepo (scaffold api + web) | backend, frontend | 🟢 pronta | — |
+| [F1-E00](F1-E00-bootstrap/epic.md) | Bootstrap do monorepo (scaffold api + web) | backend, frontend | 🔵 especificado | — |
 
 ## Fase 1 — MVP
 
 | ID | Título | Bounded context | Camadas | Status | Depende de |
 | --- | --- | --- | --- | --- | --- |
-| [F1-E01](F1-E01-cadastros-sis.md) | Cadastros / SIS básico | `people`, `academic` | backend | 🟢 pronta | F1-E00 |
-| F1-E02 | Matrícula, rematrícula e turmas | `academic` | backend | ⚪ planejada | F1-E01 |
-| F1-E03 | Gestão de frequência | `attendance` | backend | ⚪ planejada | F1-E02, F1-E05 |
-| F1-E04 | Avaliações, notas e boletins | `assessment` | backend | ⚪ planejada | F1-E02, F1-E05 |
-| F1-E05 | Horários e grade de aulas | `academic` | backend | ⚪ planejada | F1-E02 |
-| F1-E06 | Financeiro essencial | `finance` | backend | ⚪ planejada | F1-E01, F1-E02 |
-| F1-E07 | Relatórios administrativos e oficiais | `reporting` | backend | ⚪ planejada | F1-E01…F1-E06 |
-| F1-E08 | Portais web (pais, alunos, professores) | vários | frontend | ⚪ planejada | F1-E01…F1-E06 |
-| F1-E09 | Segurança, perfis de acesso e LGPD | `iam` | backend | ⚪ planejada | F1-E01 (transversal) |
+| [F1-E01](F1-E01-cadastros-sis/epic.md) | Cadastros / SIS básico | `people`, `academic` | backend | 🔵 especificado | F1-E00 |
+| [F1-E02](F1-E02-matricula-rematricula/epic.md) | Matrícula, rematrícula e turmas | `academic` | backend | ⚪ épico | F1-E01 |
+| [F1-E03](F1-E03-frequencia/epic.md) | Gestão de frequência | `attendance` | backend | ⚪ épico | F1-E02, F1-E05 |
+| [F1-E04](F1-E04-avaliacoes-notas/epic.md) | Avaliações, notas e boletins | `assessment` | backend | ⚪ épico | F1-E02, F1-E05 |
+| [F1-E05](F1-E05-horarios/epic.md) | Horários e grade de aulas | `academic` | backend | ⚪ épico | F1-E02 |
+| [F1-E06](F1-E06-financeiro/epic.md) | Financeiro essencial | `finance` | backend | ⚪ épico | F1-E01, F1-E02 |
+| [F1-E07](F1-E07-relatorios/epic.md) | Relatórios administrativos e oficiais | `reporting` | backend | ⚪ épico | F1-E01…F1-E06 |
+| [F1-E08](F1-E08-portais-web/epic.md) | Portais web (pais, alunos, professores) | vários | frontend | ⚪ épico | F1-E01…F1-E06 |
+| [F1-E09](F1-E09-seguranca-lgpd/epic.md) | Segurança, perfis de acesso e LGPD | `iam` | backend | ⚪ épico | F1-E01 (transversal) |
 
 ## Fase 2 — Eficiência & Comunicação
 
 | ID | Título | Bounded context | Camadas | Status | Depende de |
 | --- | --- | --- | --- | --- | --- |
-| F2-E01 | App mobile | vários | mobile | ⚪ planejada | F1-E08 |
-| F2-E02 | Comunicação multicanal e notificações | `communication` | backend, frontend | ⚪ planejada | F1-E01, F1-E03 |
-| F2-E03 | Integração com meios de pagamento | `finance` | backend, frontend | ⚪ planejada | F1-E06 |
-| F2-E04 | Biblioteca e patrimônio | `library` (novo) | backend, frontend | ⚪ planejada | F1-E01 |
-| F2-E05 | Transporte escolar | `transport` (novo) | backend, frontend | ⚪ planejada | F1-E01, F1-E02 |
-| F2-E06 | RH e folha de pagamento | `hr` (novo) | backend, frontend | ⚪ planejada | F1-E01 |
-| F2-E07 | Multiunidade / rede escolar | `iam` (extensão) | backend, frontend | ⚪ planejada | F1-E01…F1-E09 |
-| F2-E08 | LMS/EAD integrado básico | `lms` (novo) | backend, frontend | ⚪ planejada | F1-E02, F1-E05 |
+| [F2-E01](F2-E01-app-mobile/epic.md) | App mobile | vários | mobile | ⚪ épico | F1-E08 |
+| [F2-E02](F2-E02-comunicacao/epic.md) | Comunicação multicanal e notificações | `communication` | backend, frontend | ⚪ épico | F1-E01, F1-E03 |
+| [F2-E03](F2-E03-pagamentos/epic.md) | Integração com meios de pagamento | `finance` | backend, frontend | ⚪ épico | F1-E06 |
+| [F2-E04](F2-E04-biblioteca-patrimonio/epic.md) | Biblioteca e patrimônio | `library` (novo) | backend, frontend | ⚪ épico | F1-E01 |
+| [F2-E05](F2-E05-transporte/epic.md) | Transporte escolar | `transport` (novo) | backend, frontend | ⚪ épico | F1-E01, F1-E02 |
+| [F2-E06](F2-E06-rh-folha/epic.md) | RH e folha de pagamento | `hr` (novo) | backend, frontend | ⚪ épico | F1-E01 |
+| [F2-E07](F2-E07-multiunidade/epic.md) | Multiunidade / rede escolar | `iam` (extensão) | backend, frontend | ⚪ épico | F1-E01…F1-E09 |
+| [F2-E08](F2-E08-lms-ead/epic.md) | LMS/EAD integrado básico | `lms` (novo) | backend, frontend | ⚪ épico | F1-E02, F1-E05 |
 
 ## Fase 3 — Analytics, IA & Diferenciação
 
 | ID | Título | Bounded context | Camadas | Status | Depende de |
 | --- | --- | --- | --- | --- | --- |
-| F3-E01 | Analytics/BI avançado e IA | `analytics` (novo) | backend, frontend | ⚪ planejada | F1-E03, F1-E04, F1-E06 |
-| F3-E02 | Aderência avançada à BNCC | `assessment` (extensão) | backend, frontend | ⚪ planejada | F1-E04 |
-| F3-E03 | Motor de fluxos/automações configuráveis | `automation` (novo) | backend, frontend | ⚪ planejada | F1-E03, F1-E06, F2-E02 |
-| F3-E04 | Transporte com GPS e segurança avançada | `transport` (extensão) | backend, frontend | ⚪ planejada | F2-E05 |
-| F3-E05 | Experiência mobile superior | vários | mobile | ⚪ planejada | F2-E01 |
-| F3-E06 | Ecossistema de integrações | `integrations` (novo) | backend | ⚪ planejada | F1-E09 |
-| F3-E07 | Gestão multi-rede com governança | `iam` (extensão) | backend, frontend | ⚪ planejada | F2-E07 |
+| [F3-E01](F3-E01-analytics-ia/epic.md) | Analytics/BI avançado e IA | `analytics` (novo) | backend, frontend | ⚪ épico | F1-E03, F1-E04, F1-E06 |
+| [F3-E02](F3-E02-bncc/epic.md) | Aderência avançada à BNCC | `assessment` (extensão) | backend, frontend | ⚪ épico | F1-E04 |
+| [F3-E03](F3-E03-automacoes/epic.md) | Motor de fluxos/automações configuráveis | `automation` (novo) | backend, frontend | ⚪ épico | F1-E03, F1-E06, F2-E02 |
+| [F3-E04](F3-E04-transporte-gps/epic.md) | Transporte com GPS e segurança avançada | `transport` (extensão) | backend, frontend | ⚪ épico | F2-E05 |
+| [F3-E05](F3-E05-mobile-superior/epic.md) | Experiência mobile superior | vários | mobile | ⚪ épico | F2-E01 |
+| [F3-E06](F3-E06-integracoes/epic.md) | Ecossistema de integrações | `integrations` (novo) | backend | ⚪ épico | F1-E09 |
+| [F3-E07](F3-E07-multi-rede/epic.md) | Gestão multi-rede com governança | `iam` (extensão) | backend, frontend | ⚪ épico | F2-E07 |
 
-## Como adicionar uma nova ficha
+## Fluxo de trabalho
 
-1. Copie [`_TEMPLATE.md`](_TEMPLATE.md) para `.claude/docs/features/<ID>-<slug>.md`.
-2. Preencha usando o épico correspondente em [`BACKLOG.md`](../../BACKLOG.md) como fonte das histórias/critérios.
-3. Atualize a linha do épico nesta tabela: link no ID e status para 🟢 `pronta`.
+1. **Planejar um épico ⚪:** o `epic.md` já existe para todos os épicos — é o ponto de partida.
+2. **Especificar (⚪ → 🔵):** dentro da pasta do épico, copiar [`_TEMPLATE-spec.md`](_TEMPLATE-spec.md) para `spec-<nome>.md` (uma spec por fatia implementável — um épico grande pode gerar mais de uma) e preencher usando o `epic.md` e o `BACKLOG.md` como fonte. Atualizar o status nesta tabela para 🔵.
+3. **Implementar (🔵 → 🟢):** seguir a(s) spec(s) conforme o protocolo do [`CLAUDE.md`](../../../CLAUDE.md). Atualizar o status nesta tabela para 🟢 quando o código estiver em produção/mergeado.
+4. **Novo épico** (fora do BACKLOG atual): copiar [`_TEMPLATE-epic.md`](_TEMPLATE-epic.md) para uma nova pasta e seguir o mesmo ciclo.

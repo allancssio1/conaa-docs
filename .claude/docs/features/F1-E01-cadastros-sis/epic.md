@@ -10,7 +10,7 @@
 | Estimativa | G |
 | Bounded context(s) | `people`, `academic` |
 | Depende de | F1-E00 (bootstrap) |
-| Rastreabilidade | [`BACKLOG.md`](../../BACKLOG.md) — buscar por `### F1-E01` (referência, não leitura obrigatória) |
+| Rastreabilidade | [`BACKLOG.md`](../../../BACKLOG.md) — buscar por `### F1-E01` (referência, não leitura obrigatória) |
 
 ## Objetivo
 

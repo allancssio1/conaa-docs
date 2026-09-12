@@ -14,7 +14,7 @@
 
 ## Objetivo
 
-Criar o esqueleto do monorepo (`apps/api` + `apps/web`) com toda a fundação técnica descrita em [arquitetura-ignite.md](../../arquitetura-ignite.md) (backend) e [arquitetura-frontend.md](../../arquitetura-frontend.md) (frontend), **sem nenhuma regra de negócio ainda**. Ao final desta ficha, `F1-E01` (e as demais) só precisam adicionar código de domínio sobre uma base já funcional.
+Criar o esqueleto do monorepo (`apps/api` + `apps/web`) com toda a fundação técnica descrita em [arquitetura-ignite.md](../../../arquitetura-ignite.md) (backend) e [arquitetura-frontend.md](../../../arquitetura-frontend.md) (frontend), **sem nenhuma regra de negócio ainda**. Ao final desta ficha, `F1-E01` (e as demais) só precisam adicionar código de domínio sobre uma base já funcional.
 
 ## Escopo
 
@@ -58,7 +58,7 @@ Estrutura conforme arquitetura-ignite.md §2:
 
 ### `apps/web` (Next.js 16.3)
 
-Estrutura conforme [arquitetura-frontend.md](../../arquitetura-frontend.md) §2:
+Estrutura conforme [arquitetura-frontend.md](../../../arquitetura-frontend.md) §2:
 
 - [ ] Projeto Next.js 16.3 inicializado (App Router).
 - [ ] Pastas base: `app/(public)/`, `app/(portal)/`, `features/`, `shared/ui/`, `shared/api/client.ts`, `shared/auth/`, `shared/lib/`.
@@ -71,7 +71,7 @@ Estrutura conforme [arquitetura-frontend.md](../../arquitetura-frontend.md) §2:
 
 - [ ] `README.md` do projeto (raiz) com instruções de setup local (`pnpm install`, subir Postgres, `pnpm --filter api prisma migrate dev`, `pnpm dev`).
 - [ ] Docker Compose (ou instrução equivalente) para subir Postgres local de desenvolvimento.
-- [ ] Atualizar a seção "Comandos" de [`CLAUDE.md`](../../../CLAUDE.md) com os comandos reais (dev, test unit, test e2e, migrate, build) assim que definidos.
+- [ ] Atualizar a seção "Comandos" de [`CLAUDE.md`](../../../../CLAUDE.md) com os comandos reais (dev, test unit, test e2e, migrate, build) assim que definidos.
 
 ## Arquivos a criar/editar (checklist)
 

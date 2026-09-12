@@ -10,11 +10,11 @@ Para **implementar uma tarefa**, leia **apenas**:
 2. A arquitetura relevante:
    - Backend/API → [.claude/arquitetura-ignite.md](.claude/arquitetura-ignite.md)
    - Frontend/web → [.claude/arquitetura-frontend.md](.claude/arquitetura-frontend.md)
-3. A ficha da tarefa: `.claude/docs/features/<ID>.md` (ex.: `.claude/docs/features/F1-E01-cadastros-sis.md`)
+3. A pasta do épico: `.claude/docs/features/<ID>-<slug>/`. Cada pasta tem um `epic.md` (planejamento: objetivo, histórias, dependências — não é para implementar direto) e, quando já especificado, uma ou mais `spec-*.md` com o nível de detalhe técnico para codar (entidades, use cases, rotas, arquivos). Ex.: `.claude/docs/features/F1-E01-cadastros-sis/epic.md` já contém esse nível de detalhe (épico pequeno, não foi quebrado em specs separadas). Ver status de cada épico em [`.claude/docs/features/README.md`](.claude/docs/features/README.md): só implemente um épico 🔵 especificado — se estiver ⚪ (só planejamento), pare e peça para especificá-lo primeiro.
 
 **NÃO leia `BACKLOG.md`, `ROADMAP.md` ou o documento-fonte de pesquisa para implementar.** Esses arquivos existem para quem está planejando o produto, não para quem está codando — a ficha da tarefa já destila tudo que é necessário (histórias, critérios de aceite, arquivos a tocar, contratos). Se a ficha referenciar algo do backlog, é só um link de rastreabilidade, não leitura obrigatória.
 
-Se a ficha da tarefa não existir ainda para o que você precisa implementar, **pare e peça para criá-la** em vez de improvisar a partir do backlog — assim ela também fica registrada para a próxima vez.
+Se a pasta do épico não existir ainda, ou existir só como ⚪ (sem spec), **pare e peça para especificá-la** em vez de improvisar a partir do backlog — assim ela também fica registrada para a próxima vez.
 
 ## O que é este projeto
 
@@ -31,7 +31,7 @@ CONAA é um Sistema de Gestão Escolar (SGE) brasileiro. O escopo completo (o "o
   ```
 
 - **Frontend:** Next.js 16.3.
-- Monorepo: `apps/api` (backend), `apps/web` (frontend). Criados pela ficha `.claude/docs/features/F1-E00-bootstrap.md`.
+- Monorepo: `apps/api` (backend), `apps/web` (frontend). Criados pela ficha `.claude/docs/features/F1-E00-bootstrap/epic.md`.
 
 ## Mapa de pastas
 
@@ -58,7 +58,10 @@ apps/
     ...                        ver .claude/arquitetura-frontend.md
 .claude/
   docs/
-    features/                  fichas de tarefa (1 por épico) — comece por aqui para implementar
+    features/
+      <ID>-<slug>/             1 pasta por épico
+        epic.md                planejamento (objetivo, histórias, dependências)
+        spec-*.md               nível de implementação (quando já especificado) — comece por aqui
 ```
 
 ## Bounded contexts do CONAA (backend)
@@ -92,7 +95,7 @@ Novos contextos são adicionados conforme novas fichas forem criadas nas fases s
 
 ## Comandos
 
-> Ficam vazios até `.claude/docs/features/F1-E00-bootstrap.md` ser executado — depois desta ficha, atualize esta seção com os comandos reais (dev, test unit, test e2e, migrate).
+> Ficam vazios até `.claude/docs/features/F1-E00-bootstrap/epic.md` ser executado — depois desta ficha, atualize esta seção com os comandos reais (dev, test unit, test e2e, migrate).
 
 ## Índice de referência (produto, não implementação)
 
