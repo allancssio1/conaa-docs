@@ -31,31 +31,41 @@ CONAA é um Sistema de Gestão Escolar (SGE) brasileiro. O escopo completo (o "o
   ```
 
 - **Frontend:** Next.js 16.3.
-- Monorepo: `apps/api` (backend), `apps/web` (frontend). Criados pela ficha `.claude/docs/features/F1-E00-bootstrap/epic.md`.
+- **Dois repositórios de código separados** — `conaa-api` (backend) e `conaa-web` (frontend), criados pela ficha `.claude/docs/features/F1-E00-bootstrap/epic.md`. Este repositório (`conaa-controle-escolar`) é o **hub de documentação/planejamento** — não contém código de aplicação, só `.claude/` e este `CLAUDE.md`.
 
 ## Mapa de pastas
 
+Repositório `conaa-api`:
+
 ```
-apps/
-  api/
-    src/
-      core/                    building blocks compartilhados (Entity, Either, DomainEvents, erros genéricos)
-      domain/
-        <bounded-context>/
-          application/         use cases + ports (repositories/services como abstract class)
-          enterprise/          entidades, value objects, eventos de domínio — zero dependência de framework
-      infra/
-        database/prisma/       PrismaService, repositórios Prisma, mappers
-        http/                  controllers, pipes, presenters
-        auth/                  JWT strategy, guards, decorators
-        env/                   validação Zod de variáveis de ambiente
-    test/
-      repositories/            repositórios in-memory (testes unitários)
-      factories/                factories de entidades
-    prisma/
-      schema.prisma
-  web/
-    ...                        ver .claude/arquitetura-frontend.md
+src/
+  core/                    building blocks compartilhados (Entity, Either, DomainEvents, erros genéricos)
+  domain/
+    <bounded-context>/
+      application/         use cases + ports (repositories/services como abstract class)
+      enterprise/          entidades, value objects, eventos de domínio — zero dependência de framework
+  infra/
+    database/prisma/       PrismaService, repositórios Prisma, mappers
+    http/                  controllers, pipes, presenters
+    auth/                  JWT strategy, guards, decorators
+    env/                   validação Zod de variáveis de ambiente
+test/
+  repositories/            repositórios in-memory (testes unitários)
+  factories/                factories de entidades
+prisma/
+  schema.prisma
+```
+
+Repositório `conaa-web`:
+
+```
+...                        ver .claude/arquitetura-frontend.md
+```
+
+Este repositório (`conaa-controle-escolar`):
+
+```
+CLAUDE.md
 .claude/
   docs/
     features/
@@ -66,7 +76,7 @@ apps/
 
 ## Bounded contexts do CONAA (backend)
 
-Cada contexto vive em `apps/api/src/domain/<contexto>/`. Mapeamento épico → contexto (ver `.claude/docs/features/README.md` para a lista completa e status):
+Cada contexto vive em `conaa-api/src/domain/<contexto>/`. Mapeamento épico → contexto (ver `.claude/docs/features/README.md` para a lista completa e status):
 
 | Contexto | Épicos | Conteúdo |
 | --- | --- | --- |

@@ -44,7 +44,7 @@ Lista resumida das histórias do épico (a versão completa com critérios de ac
 
 `<Para cada entidade/aggregate/VO novo ou alterado:>`
 
-### `<NomeDaEntidade>` — `apps/api/src/domain/<contexto>/enterprise/entities/<nome-kebab>.ts`
+### `<NomeDaEntidade>` — `conaa-api/src/domain/<contexto>/enterprise/entities/<nome-kebab>.ts`
 
 - Tipo: `<Entity | AggregateRoot>`
 - Props principais: `<lista de campos e tipos>`
@@ -55,7 +55,7 @@ Lista resumida das histórias do épico (a versão completa com critérios de ac
 
 `<Para cada use case:>`
 
-### `<NomeUseCase>` — `apps/api/src/domain/<contexto>/application/useCases/<nome-kebab>.ts`
+### `<NomeUseCase>` — `conaa-api/src/domain/<contexto>/application/useCases/<nome-kebab>.ts`
 
 - Entrada: `<campos>`
 - Saída (`Either`): `Either<<ErrosPossíveis>, { <sucesso> }>`
@@ -65,26 +65,26 @@ Lista resumida das histórias do épico (a versão completa com critérios de ac
 
 ## Persistência (`infra/database/prisma`)
 
-- Alterações em `apps/api/prisma/schema.prisma`: `<novos models/campos/relations>`
-- Repositórios: `apps/api/src/infra/database/prisma/repositories/<nome-kebab>.ts` (implementa o port de `application/repositories/`)
-- Mappers: `apps/api/src/infra/database/prisma/mappers/<nome-kebab>.ts`
+- Alterações em `conaa-api/prisma/schema.prisma`: `<novos models/campos/relations>`
+- Repositórios: `conaa-api/src/infra/database/prisma/repositories/<nome-kebab>.ts` (implementa o port de `application/repositories/`)
+- Mappers: `conaa-api/src/infra/database/prisma/mappers/<nome-kebab>.ts`
 
 ## HTTP (`infra/http`)
 
 `<Para cada endpoint:>`
 
-### `<MÉTODO> <rota>` — `apps/api/src/infra/http/controllers/<nome-kebab>.controller.ts`
+### `<MÉTODO> <rota>` — `conaa-api/src/infra/http/controllers/<nome-kebab>.controller.ts`
 
 - Schema Zod de entrada: `<campos e regras>`
-- Presenter de saída: `apps/api/src/infra/http/presenters/<nome-kebab>.presenter.ts`
+- Presenter de saída: `conaa-api/src/infra/http/presenters/<nome-kebab>.presenter.ts`
 - Autenticação/perfis exigidos: `<ex.: secretaria, coordenação>`
 
-## Frontend (`apps/web`)
+## Frontend (`conaa-web`)
 
-- Rota(s): `apps/web/app/(portal)/<caminho>/page.tsx`
-- Componentes: `apps/web/features/<contexto>/components/<Nome>.tsx`
-- Chamadas à API: `apps/web/features/<contexto>/api/<nome>.ts`
-- Schema de formulário: `apps/web/features/<contexto>/schemas/<nome>.ts`
+- Rota(s): `conaa-web/app/(portal)/<caminho>/page.tsx`
+- Componentes: `conaa-web/features/<contexto>/components/<Nome>.tsx`
+- Chamadas à API: `conaa-web/features/<contexto>/api/<nome>.ts`
+- Schema de formulário: `conaa-web/features/<contexto>/schemas/<nome>.ts`
 - Estados de UI relevantes: `<loading, vazio, erro de negócio específico, etc.>`
 
 ## Eventos/subscribers (se houver)
@@ -93,21 +93,21 @@ Lista resumida das histórias do épico (a versão completa com critérios de ac
 
 ## Arquivos a criar/editar (checklist)
 
-- [ ] `apps/api/src/domain/<contexto>/enterprise/entities/...`
-- [ ] `apps/api/src/domain/<contexto>/application/useCases/...`
-- [ ] `apps/api/src/domain/<contexto>/application/repositories/...`
-- [ ] `apps/api/src/infra/database/prisma/repositories/...`
-- [ ] `apps/api/src/infra/database/prisma/mappers/...`
-- [ ] `apps/api/prisma/schema.prisma`
-- [ ] `apps/api/src/infra/http/controllers/...`
-- [ ] `apps/api/src/infra/http/presenters/...`
-- [ ] `apps/web/app/(portal)/...`
-- [ ] `apps/web/features/<contexto>/...`
+- [ ] `conaa-api/src/domain/<contexto>/enterprise/entities/...`
+- [ ] `conaa-api/src/domain/<contexto>/application/useCases/...`
+- [ ] `conaa-api/src/domain/<contexto>/application/repositories/...`
+- [ ] `conaa-api/src/infra/database/prisma/repositories/...`
+- [ ] `conaa-api/src/infra/database/prisma/mappers/...`
+- [ ] `conaa-api/prisma/schema.prisma`
+- [ ] `conaa-api/src/infra/http/controllers/...`
+- [ ] `conaa-api/src/infra/http/presenters/...`
+- [ ] `conaa-web/app/(portal)/...`
+- [ ] `conaa-web/features/<contexto>/...`
 
 ## Testes
 
-- Repositório in-memory: `apps/api/test/repositories/in-memory-<nome>.ts`
-- Factory: `apps/api/test/factories/make-<nome>.ts`
+- Repositório in-memory: `conaa-api/test/repositories/in-memory-<nome>.ts`
+- Factory: `conaa-api/test/factories/make-<nome>.ts`
 - Unit spec de use case: `<use-case>.spec.ts` (ao lado do use case)
 - E2E do controller: `<controller>.e2e-spec.ts` (ao lado do controller)
 - Frontend: teste de componente/hook relevante (se a tela tiver lógica não trivial)
@@ -116,5 +116,5 @@ Lista resumida das histórias do épico (a versão completa com critérios de ac
 
 - [ ] Todos os critérios de aceite das histórias no BACKLOG estão satisfeitos.
 - [ ] Testes unitários e e2e listados acima passando.
-- [ ] `pnpm build` (ou equivalente) sem erros em `apps/api` e `apps/web`.
+- [ ] `pnpm build` (ou equivalente) sem erros em `conaa-api` e `conaa-web`.
 - [ ] Checklist de "Arquivos a criar/editar" concluído.

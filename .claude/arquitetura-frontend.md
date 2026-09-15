@@ -1,12 +1,12 @@
 # Arquitetura de referência: frontend (Next.js 16.3)
 
-> **Proposta revisável.** Diferente de [arquitetura-ignite.md](arquitetura-ignite.md) (que documenta um projeto de referência existente), este documento é uma convenção proposta para o `apps/web` do CONAA, pensada para espelhar o mesmo nível de organização do backend. Ajuste livremente antes de considerá-la definitiva.
+> **Proposta revisável.** Diferente de [arquitetura-ignite.md](arquitetura-ignite.md) (que documenta um projeto de referência existente), este documento é uma convenção proposta para o repositório `conaa-web` do CONAA, pensada para espelhar o mesmo nível de organização do backend (repositório `conaa-api`). Ajuste livremente antes de considerá-la definitiva.
 >
 > **Nota de versão:** a API exata do Next.js 16.3 (nomes de APIs, comportamento padrão de cache, etc.) deve ser validada contra a documentação oficial no momento da implementação de cada ficha — não assuma este documento como fonte de verdade sobre a API do framework, só sobre a organização do projeto.
 
 ## 1. Visão geral
 
-`apps/web` consome a API do `apps/api` via um client HTTP tipado. Organização por **feature** (não por tipo de arquivo), espelhando os bounded contexts do backend sempre que fizer sentido para a navegação do usuário (ex.: contexto `academic` → área "Turmas" no app).
+`conaa-web` consome a API do `conaa-api` via um client HTTP tipado. Organização por **feature** (não por tipo de arquivo), espelhando os bounded contexts do backend sempre que fizer sentido para a navegação do usuário (ex.: contexto `academic` → área "Turmas" no app).
 
 ```
 app        →  camada de rotas (App Router) — fina, delega para features/
@@ -19,7 +19,7 @@ Regra de dependência: `app` depende de `features`; `features` pode depender de 
 ## 2. Estrutura de pastas
 
 ```
-apps/web/
+conaa-web/
   app/
     (public)/                 rotas sem autenticação (login, esqueci senha)
     (portal)/
@@ -46,7 +46,7 @@ apps/web/
   next.config.ts
 ```
 
-Cada `features/<contexto>` é autocontido e opcionalmente mapeia 1:1 para um bounded context do backend (`apps/api/src/domain/<contexto>`), facilitando encontrar "onde mora a tela que fala com este use case".
+Cada `features/<contexto>` é autocontido e opcionalmente mapeia 1:1 para um bounded context do backend (`conaa-api/src/domain/<contexto>`), facilitando encontrar "onde mora a tela que fala com este use case".
 
 ## 3. Camada de rotas (`app/`)
 
@@ -80,9 +80,9 @@ Cada `features/<contexto>` é autocontido e opcionalmente mapeia 1:1 para um bou
 
 ## 8. Testes
 
-- Componentes/hooks: Vitest + Testing Library, mesma stack de teste do backend por consistência de tooling no monorepo.
+- Componentes/hooks: Vitest + Testing Library, mesma stack de teste do backend por consistência de tooling entre os repositórios.
 - Mocks de API: funções de `features/<contexto>/api` são mockadas nos testes de componente — nunca mocka-se `fetch` diretamente.
-- E2E de fluxo crítico (login, matrícula, lançamento de nota): Playwright, rodando contra `apps/api` local.
+- E2E de fluxo crítico (login, matrícula, lançamento de nota): Playwright, rodando contra `conaa-api` local.
 
 ## 9. Principais dependências (proposta)
 
@@ -96,6 +96,6 @@ Cada `features/<contexto>` é autocontido e opcionalmente mapeia 1:1 para um bou
 
 ## 10. O que aproveitar do padrão do backend
 
-- Organização por domínio (`features/<contexto>` espelhando `domain/<contexto>`) mantém a navegação mental consistente entre as duas apps do monorepo.
+- Organização por domínio (`features/<contexto>` espelhando `domain/<contexto>`) mantém a navegação mental consistente entre os dois repositórios (`conaa-api` e `conaa-web`).
 - Reuso de Zod entre frontend e backend reduz duplicação de regras de validação (mesmo que os schemas não sejam literalmente compartilhados via pacote comum, a *fonte* de cada regra é a ficha da tarefa).
 - Erros de negócio (`Either` no backend) devem ter um mapeamento único e prático no client HTTP, para que toda tela trate erro de negócio de forma consistente em vez de cada componente reinventar tratamento de erro.

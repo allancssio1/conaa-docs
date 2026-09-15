@@ -5,13 +5,13 @@ Cada épico tem uma pasta própria (`<ID>-<slug>/`) contendo `epic.md` (planejam
 **Ciclo de status:**
 - ⚪ `épico` — só o planejamento (`epic.md`) existe. Não implementar direto: primeiro quebrar em specs.
 - 🔵 `especificado` — tem spec(s) de implementação pronta(s) na pasta. Pode implementar.
-- 🟢 `implementado` — código já existe em `apps/api`/`apps/web` para este épico.
+- 🟢 `implementado` — código já existe em `conaa-api`/`conaa-web` para este épico.
 
 ## Fundação
 
 | ID | Título | Camadas | Status | Depende de |
 | --- | --- | --- | --- | --- |
-| [F1-E00](F1-E00-bootstrap/epic.md) | Bootstrap do monorepo (scaffold api + web) | backend, frontend | 🔵 especificado | — |
+| [F1-E00](F1-E00-bootstrap/epic.md) | Bootstrap dos repositórios (conaa-api + conaa-web) | backend, frontend | 🔵 especificado | — |
 
 ## Fase 1 — MVP
 

@@ -27,7 +27,7 @@ Cadastro de professores e funcionários é incluído como base mínima (nome + d
 
 ## Modelo de domínio (`enterprise`)
 
-### Contexto `people` — `apps/api/src/domain/people/enterprise/`
+### Contexto `people` — `conaa-api/src/domain/people/enterprise/`
 
 | Entidade | Tipo | Caminho (`entities/`) | Props principais |
 | --- | --- | --- | --- |
@@ -48,7 +48,7 @@ Invariantes:
 - `Student` nasce com `status = 'ACTIVE'`.
 - Mudança de status registra `updatedAt` (histórico completo de auditoria é responsabilidade de `F1-E09`, não duplicar aqui).
 
-### Contexto `academic` — `apps/api/src/domain/academic/enterprise/`
+### Contexto `academic` — `conaa-api/src/domain/academic/enterprise/`
 
 | Entidade | Tipo | Caminho (`entities/`) | Props principais |
 | --- | --- | --- | --- |
@@ -68,7 +68,7 @@ Invariantes:
 
 ## Use cases (`application`)
 
-### Contexto `people` — `apps/api/src/domain/people/application/useCases/`
+### Contexto `people` — `conaa-api/src/domain/people/application/useCases/`
 
 | Use case | Arquivo | Entrada | Saída (`Either`) | Erros específicos |
 | --- | --- | --- | --- | --- |
@@ -85,7 +85,7 @@ Regras de negócio principais:
 - `LinkGuardianToStudentUseCase`: se `guardianId` não informado, cria um novo `Guardian` primeiro; valida que `studentId` existe; permite múltiplos responsáveis por aluno (não deduplica papéis — um aluno pode ter 2 responsáveis financeiros).
 - `UpdateStudentStatusUseCase`: valida transição permitida (ex.: não permitir `GRADUATED → ACTIVE` diretamente); alunos fora de `ACTIVE` continuam consultáveis (não são deletados).
 
-### Contexto `academic` — `apps/api/src/domain/academic/application/useCases/`
+### Contexto `academic` — `conaa-api/src/domain/academic/application/useCases/`
 
 | Use case | Arquivo | Entrada | Saída (`Either`) |
 | --- | --- | --- | --- |
@@ -102,17 +102,17 @@ Regra de negócio destacada: `DeleteTurmaUseCase` bloqueia exclusão se houver a
 
 ## Persistência (`infra/database/prisma`)
 
-### `apps/api/prisma/schema.prisma` — novos models
+### `conaa-api/prisma/schema.prisma` — novos models
 
 - `Student`, `Guardian`, `StudentGuardian` (tabela de junção com `role`), `Teacher`, `Staff`.
 - `SchoolYear`, `Serie`, `Turma`, `Disciplina`, `DisciplinaSerie` (junção N:N), `Sala`, `CalendarEvent`.
 - Enums Prisma espelhando os VOs: `StudentStatus`, `GuardianRole`, `Segment`, `Turno`, `CalendarEventType`.
 
-### Repositórios — `apps/api/src/infra/database/prisma/repositories/`
+### Repositórios — `conaa-api/src/infra/database/prisma/repositories/`
 
 Um arquivo por port listado acima (`prisma-students-repository.ts`, `prisma-guardians-repository.ts`, `prisma-student-guardians-repository.ts`, `prisma-teachers-repository.ts`, `prisma-staff-repository.ts`, `prisma-school-years-repository.ts`, `prisma-series-repository.ts`, `prisma-turmas-repository.ts`, `prisma-disciplinas-repository.ts`, `prisma-salas-repository.ts`).
 
-### Mappers — `apps/api/src/infra/database/prisma/mappers/`
+### Mappers — `conaa-api/src/infra/database/prisma/mappers/`
 
 Um mapper estático por entidade (`student-mapper.ts`, `guardian-mapper.ts`, etc.) com `toDomain`/`toPrisma`, convertendo `string ↔ UniqueEntityId` e VOs (`Address`, `EmergencyContact`) para/de JSON (campo `Json` no Prisma) ou colunas próprias — decidir na implementação conforme necessidade de consulta.
 
@@ -122,7 +122,7 @@ Um mapper estático por entidade (`student-mapper.ts`, `guardian-mapper.ts`, etc
 
 ## HTTP (`infra/http`)
 
-Controllers em `apps/api/src/infra/http/controllers/`, um por use case, todos exigindo perfil `secretaria` ou `coordenação` (ver `F1-E09` para o guard de perfis — nesta ficha, aplicar apenas `JwtAuthGuard` padrão, sem checagem fina de papel ainda).
+Controllers em `conaa-api/src/infra/http/controllers/`, um por use case, todos exigindo perfil `secretaria` ou `coordenação` (ver `F1-E09` para o guard de perfis — nesta ficha, aplicar apenas `JwtAuthGuard` padrão, sem checagem fina de papel ainda).
 
 | Rota | Controller | Schema Zod (entrada) | Presenter |
 | --- | --- | --- | --- |
@@ -139,7 +139,7 @@ Controllers em `apps/api/src/infra/http/controllers/`, um por use case, todos ex
 | `POST /disciplinas` | `create-disciplina.controller.ts` | dados de `CreateDisciplinaUseCase` | `disciplina-presenter.ts` |
 | `POST /salas` | `create-sala.controller.ts` | dados de `CreateSalaUseCase` | `sala-presenter.ts` |
 
-## Frontend (`apps/web`)
+## Frontend (`conaa-web`)
 
 Contexto `features/people/` e `features/academic/`, sob a rota `app/(portal)/cadastros/`:
 
@@ -155,68 +155,68 @@ Contexto `features/people/` e `features/academic/`, sob a rota `app/(portal)/cad
 ## Arquivos a criar/editar (checklist)
 
 ```
-apps/api/src/domain/people/enterprise/entities/student.ts
-apps/api/src/domain/people/enterprise/entities/guardian.ts
-apps/api/src/domain/people/enterprise/entities/student-guardian.ts
-apps/api/src/domain/people/enterprise/entities/teacher.ts
-apps/api/src/domain/people/enterprise/entities/staff.ts
-apps/api/src/domain/people/enterprise/entities/valueObjects/address.ts
-apps/api/src/domain/people/enterprise/entities/valueObjects/emergency-contact.ts
-apps/api/src/domain/people/enterprise/entities/valueObjects/student-status.ts
-apps/api/src/domain/people/enterprise/entities/valueObjects/guardian-role.ts
-apps/api/src/domain/people/application/useCases/register-student.ts (+ errors/, + .spec.ts)
-apps/api/src/domain/people/application/useCases/link-guardian-to-student.ts (+ .spec.ts)
-apps/api/src/domain/people/application/useCases/update-student-status.ts (+ errors/, + .spec.ts)
-apps/api/src/domain/people/application/useCases/register-teacher.ts (+ errors/, + .spec.ts)
-apps/api/src/domain/people/application/useCases/register-staff.ts (+ errors/, + .spec.ts)
-apps/api/src/domain/people/application/repositories/students-repository.ts
-apps/api/src/domain/people/application/repositories/guardians-repository.ts
-apps/api/src/domain/people/application/repositories/student-guardians-repository.ts
-apps/api/src/domain/people/application/repositories/teachers-repository.ts
-apps/api/src/domain/people/application/repositories/staff-repository.ts
+conaa-api/src/domain/people/enterprise/entities/student.ts
+conaa-api/src/domain/people/enterprise/entities/guardian.ts
+conaa-api/src/domain/people/enterprise/entities/student-guardian.ts
+conaa-api/src/domain/people/enterprise/entities/teacher.ts
+conaa-api/src/domain/people/enterprise/entities/staff.ts
+conaa-api/src/domain/people/enterprise/entities/valueObjects/address.ts
+conaa-api/src/domain/people/enterprise/entities/valueObjects/emergency-contact.ts
+conaa-api/src/domain/people/enterprise/entities/valueObjects/student-status.ts
+conaa-api/src/domain/people/enterprise/entities/valueObjects/guardian-role.ts
+conaa-api/src/domain/people/application/useCases/register-student.ts (+ errors/, + .spec.ts)
+conaa-api/src/domain/people/application/useCases/link-guardian-to-student.ts (+ .spec.ts)
+conaa-api/src/domain/people/application/useCases/update-student-status.ts (+ errors/, + .spec.ts)
+conaa-api/src/domain/people/application/useCases/register-teacher.ts (+ errors/, + .spec.ts)
+conaa-api/src/domain/people/application/useCases/register-staff.ts (+ errors/, + .spec.ts)
+conaa-api/src/domain/people/application/repositories/students-repository.ts
+conaa-api/src/domain/people/application/repositories/guardians-repository.ts
+conaa-api/src/domain/people/application/repositories/student-guardians-repository.ts
+conaa-api/src/domain/people/application/repositories/teachers-repository.ts
+conaa-api/src/domain/people/application/repositories/staff-repository.ts
 
-apps/api/src/domain/academic/enterprise/entities/school-year.ts
-apps/api/src/domain/academic/enterprise/entities/serie.ts
-apps/api/src/domain/academic/enterprise/entities/turma.ts
-apps/api/src/domain/academic/enterprise/entities/disciplina.ts
-apps/api/src/domain/academic/enterprise/entities/sala.ts
-apps/api/src/domain/academic/enterprise/entities/valueObjects/turno.ts
-apps/api/src/domain/academic/enterprise/entities/valueObjects/calendar-event.ts
-apps/api/src/domain/academic/application/useCases/create-school-year.ts (+ .spec.ts)
-apps/api/src/domain/academic/application/useCases/create-serie.ts (+ .spec.ts)
-apps/api/src/domain/academic/application/useCases/create-turma.ts (+ errors/, + .spec.ts)
-apps/api/src/domain/academic/application/useCases/create-disciplina.ts (+ .spec.ts)
-apps/api/src/domain/academic/application/useCases/create-sala.ts (+ .spec.ts)
-apps/api/src/domain/academic/application/useCases/delete-turma.ts (+ errors/, + .spec.ts)
-apps/api/src/domain/academic/application/repositories/school-years-repository.ts
-apps/api/src/domain/academic/application/repositories/series-repository.ts
-apps/api/src/domain/academic/application/repositories/turmas-repository.ts
-apps/api/src/domain/academic/application/repositories/disciplinas-repository.ts
-apps/api/src/domain/academic/application/repositories/salas-repository.ts
+conaa-api/src/domain/academic/enterprise/entities/school-year.ts
+conaa-api/src/domain/academic/enterprise/entities/serie.ts
+conaa-api/src/domain/academic/enterprise/entities/turma.ts
+conaa-api/src/domain/academic/enterprise/entities/disciplina.ts
+conaa-api/src/domain/academic/enterprise/entities/sala.ts
+conaa-api/src/domain/academic/enterprise/entities/valueObjects/turno.ts
+conaa-api/src/domain/academic/enterprise/entities/valueObjects/calendar-event.ts
+conaa-api/src/domain/academic/application/useCases/create-school-year.ts (+ .spec.ts)
+conaa-api/src/domain/academic/application/useCases/create-serie.ts (+ .spec.ts)
+conaa-api/src/domain/academic/application/useCases/create-turma.ts (+ errors/, + .spec.ts)
+conaa-api/src/domain/academic/application/useCases/create-disciplina.ts (+ .spec.ts)
+conaa-api/src/domain/academic/application/useCases/create-sala.ts (+ .spec.ts)
+conaa-api/src/domain/academic/application/useCases/delete-turma.ts (+ errors/, + .spec.ts)
+conaa-api/src/domain/academic/application/repositories/school-years-repository.ts
+conaa-api/src/domain/academic/application/repositories/series-repository.ts
+conaa-api/src/domain/academic/application/repositories/turmas-repository.ts
+conaa-api/src/domain/academic/application/repositories/disciplinas-repository.ts
+conaa-api/src/domain/academic/application/repositories/salas-repository.ts
 
-apps/api/prisma/schema.prisma                          (editar — adicionar models/enums acima)
-apps/api/src/infra/database/prisma/repositories/*.ts   (10 repositórios, ver seção Persistência)
-apps/api/src/infra/database/prisma/mappers/*.ts        (10 mappers, ver seção Persistência)
+conaa-api/prisma/schema.prisma                          (editar — adicionar models/enums acima)
+conaa-api/src/infra/database/prisma/repositories/*.ts   (10 repositórios, ver seção Persistência)
+conaa-api/src/infra/database/prisma/mappers/*.ts        (10 mappers, ver seção Persistência)
 
-apps/api/src/infra/http/controllers/*.ts                (12 controllers, ver seção HTTP)
-apps/api/src/infra/http/presenters/*.ts                 (8 presenters, ver seção HTTP)
+conaa-api/src/infra/http/controllers/*.ts                (12 controllers, ver seção HTTP)
+conaa-api/src/infra/http/presenters/*.ts                 (8 presenters, ver seção HTTP)
 
-apps/web/app/(portal)/cadastros/alunos/page.tsx
-apps/web/app/(portal)/cadastros/alunos/novo/page.tsx
-apps/web/app/(portal)/cadastros/alunos/[studentId]/page.tsx
-apps/web/app/(portal)/cadastros/estrutura/page.tsx
-apps/web/features/people/components/*.tsx
-apps/web/features/people/api/students.ts
-apps/web/features/people/schemas/student.ts
-apps/web/features/academic/components/*.tsx
-apps/web/features/academic/api/academic.ts
-apps/web/features/academic/schemas/academic.ts
+conaa-web/app/(portal)/cadastros/alunos/page.tsx
+conaa-web/app/(portal)/cadastros/alunos/novo/page.tsx
+conaa-web/app/(portal)/cadastros/alunos/[studentId]/page.tsx
+conaa-web/app/(portal)/cadastros/estrutura/page.tsx
+conaa-web/features/people/components/*.tsx
+conaa-web/features/people/api/students.ts
+conaa-web/features/people/schemas/student.ts
+conaa-web/features/academic/components/*.tsx
+conaa-web/features/academic/api/academic.ts
+conaa-web/features/academic/schemas/academic.ts
 ```
 
 ## Testes
 
-- Repositórios in-memory (`apps/api/test/repositories/`): `in-memory-students-repository.ts`, `in-memory-guardians-repository.ts`, `in-memory-student-guardians-repository.ts`, `in-memory-teachers-repository.ts`, `in-memory-staff-repository.ts`, `in-memory-school-years-repository.ts`, `in-memory-series-repository.ts`, `in-memory-turmas-repository.ts`, `in-memory-disciplinas-repository.ts`, `in-memory-salas-repository.ts`.
-- Factories (`apps/api/test/factories/`): `make-student.ts`, `make-guardian.ts`, `make-teacher.ts`, `make-staff.ts`, `make-school-year.ts`, `make-serie.ts`, `make-turma.ts`, `make-disciplina.ts`, `make-sala.ts` (+ versões `@Injectable()` com persistência Prisma para e2e).
+- Repositórios in-memory (`conaa-api/test/repositories/`): `in-memory-students-repository.ts`, `in-memory-guardians-repository.ts`, `in-memory-student-guardians-repository.ts`, `in-memory-teachers-repository.ts`, `in-memory-staff-repository.ts`, `in-memory-school-years-repository.ts`, `in-memory-series-repository.ts`, `in-memory-turmas-repository.ts`, `in-memory-disciplinas-repository.ts`, `in-memory-salas-repository.ts`.
+- Factories (`conaa-api/test/factories/`): `make-student.ts`, `make-guardian.ts`, `make-teacher.ts`, `make-staff.ts`, `make-school-year.ts`, `make-serie.ts`, `make-turma.ts`, `make-disciplina.ts`, `make-sala.ts` (+ versões `@Injectable()` com persistência Prisma para e2e).
 - Unit specs: um `.spec.ts` por use case listado nas tabelas acima, cobrindo caminho feliz + cada erro específico.
 - E2E: um `.e2e-spec.ts` por controller listado na seção HTTP.
 
