@@ -66,8 +66,8 @@ Estrutura conforme [arquitetura-frontend.md](../../../arquitetura-frontend.md) �
 - [ ] Projeto Next.js 16.3 inicializado (App Router).
 - [ ] Pastas base: `app/(public)/`, `app/(portal)/`, `features/`, `shared/ui/`, `shared/api/client.ts`, `shared/auth/`, `shared/lib/`.
 - [ ] `shared/api/client.ts` — client HTTP tipado apontando para a API (usa variável de ambiente para a base URL do `conaa-api`, já que são repositórios/deploys separados).
-- [ ] `middleware.ts` — placeholder de proteção de rota (sem lógica de perfil ainda, só estrutura).
-- [ ] Página pública mínima (`app/(public)/login/page.tsx`) e página protegida mínima (`app/(portal)/page.tsx`) para provar que o roteamento e o middleware funcionam.
+- [ ] `proxy.ts` — placeholder de proteção de rota (sem lógica de perfil ainda, só estrutura).
+- [ ] Página pública mínima (`app/(public)/login/page.tsx`) e página protegida mínima (`app/(portal)/page.tsx`) para provar que o roteamento e o proxy funcionam.
 - [ ] `.env.example` com a URL da API (`conaa-api`, rodando localmente em outra porta/processo).
 - [ ] `README.md` do repositório com instruções de setup local (`pnpm install`, `pnpm dev`, variável de ambiente apontando para o `conaa-api` local já rodando).
 
@@ -99,7 +99,7 @@ conaa-web/package.json
 conaa-web/app/(public)/login/page.tsx
 conaa-web/app/(portal)/page.tsx
 conaa-web/shared/api/client.ts
-conaa-web/middleware.ts
+conaa-web/proxy.ts
 conaa-web/.env.example
 conaa-web/README.md
 ```

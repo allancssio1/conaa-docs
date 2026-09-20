@@ -42,7 +42,7 @@ conaa-web/
       client.ts                  client HTTP base (fetch tipado, injeta auth token)
     auth/                        sessão, guards de rota, hook useSession
     lib/                         utilitários genéricos (formatação de data, etc.)
-  middleware.ts                  proteção de rotas por sessão/perfil
+  proxy.ts                       proteção de rotas por sessão/perfil
   next.config.ts
 ```
 
@@ -52,7 +52,7 @@ Cada `features/<contexto>` é autocontido e opcionalmente mapeia 1:1 para um bou
 
 - App Router, Server Components por padrão; `"use client"` só onde há interatividade/estado local.
 - Componentes de página são **finos**: buscam dados (via `features/<contexto>/api` ou hooks) e compõem componentes de `features/<contexto>/components`. Nada de lógica de negócio dentro de `app/`.
-- Agrupamento de rotas por área de acesso: `(public)` (sem sessão) e `(portal)` (autenticado, com `middleware.ts` validando sessão e perfil).
+- Agrupamento de rotas por área de acesso: `(public)` (sem sessão) e `(portal)` (autenticado, com `proxy.ts` validando sessão e perfil).
 - Rotas dinâmicas (`[id]`) e paralelas/interceptadas apenas quando o caso de uso exigir (ex.: modal de detalhe de aluno sobre a lista).
 
 ## 4. Camada de dados (`features/<contexto>/api` + `shared/api`)
@@ -70,8 +70,8 @@ Cada `features/<contexto>` é autocontido e opcionalmente mapeia 1:1 para um bou
 ## 6. Autenticação e autorização
 
 - Sessão via cookie httpOnly (token emitido pelo backend `infra/auth`, JWT RS256 — ver arquitetura-ignite.md §6).
-- `middleware.ts` bloqueia acesso a `(portal)/*` sem sessão válida e redireciona para login.
-- Controle de visibilidade por perfil (secretaria, coordenação, professor, responsável, aluno) feito tanto no `middleware.ts` (rotas inteiras) quanto em componentes (`shared/auth` expõe hook/guard para esconder ações específicas).
+- `proxy.ts` bloqueia acesso a `(portal)/*` sem sessão válida e redireciona para login.
+- Controle de visibilidade por perfil (secretaria, coordenação, professor, responsável, aluno) feito tanto no `proxy.ts` (rotas inteiras) quanto em componentes (`shared/auth` expõe hook/guard para esconder ações específicas).
 
 ## 7. Design system (`shared/ui`)
 
