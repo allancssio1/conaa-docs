@@ -167,6 +167,73 @@ export abstract class QuestionsRepository {
 
 ---
 
+## 11. Multi-tenancy (fundacional desde o dia zero)
+
+O CONAA é **multi-tenant desde o início** — não um retrofit de fase posterior. O tenant é o
+**`Group`** (grupo): uma organização que pode ser uma secretaria, um município, uma rede ou uma
+escola isolada (o campo `type` é só um rótulo informativo, não muda o comportamento). Um `Group`
+tem uma ou mais `School` (escolas). Bounded context `tenancy` — ver
+[`F1-E0A`](docs/features/F1-E0A-tenancy/spec-tenancy.md) para o detalhe de implementação.
+
+### Duas dimensões, dois papéis diferentes
+
+- **`groupId` — isolamento (boundary de segurança).** Todo model de negócio carrega `groupId`.
+  Nenhum usuário de um `Group` pode ler ou escrever dado de outro `Group`, sem exceção.
+- **`schoolId` — escopo de permissão (visibilidade dentro do tenant).** Nas tabelas operacionais
+  (`Student`, `Teacher`, `Turma`, `Invoice`, etc.), `schoolId` decide **quais escolas do próprio
+  Group** o usuário autenticado enxerga. Um papel *group-wide* (ex.: mantenedora/admin do Group)
+  vê todas as escolas; um papel *school-scoped* (ex.: diretor de uma unidade) só vê a(s) escola(s)
+  atribuída(s) a ele. Essa distinção é decidida por `UserRole.schoolId` (`null` = group-wide;
+  preenchido = restrito), modelado em `F1-E09`.
+
+### `GroupContext` (`AsyncLocalStorage`)
+
+Contexto de request populado a partir do usuário autenticado, nunca a partir do corpo/query da
+requisição:
+
+```ts
+type GroupContext = {
+  groupId: string
+  allowedSchoolIds: string[] | null // null = acesso a todas as escolas do group
+}
+```
+
+- `GroupScopeGuard` (`infra/auth/`) roda **depois** do `JwtAuthGuard`: lê `groupId` do payload do
+  JWT, busca os `UserRole` do usuário para montar `allowedSchoolIds`, e popula o ALS para a duração
+  da requisição.
+- Rotas de onboarding (`RegisterGroupUseCase`, `RegisterSchoolUseCase`, criação do primeiro usuário
+  admin) rodam **fora** deste contexto (equivalentes a `@Public()` ou um guard próprio de signup).
+
+### Enforcement via Prisma Client Extension
+
+Uma única `$extends` (`infra/database/prisma/extensions/tenant-scope.extension.ts`) intercepta
+toda query dos models de negócio:
+
+- **Leitura:** injeta `where: { groupId }`; se o model tem `schoolId` e `allowedSchoolIds != null`,
+  injeta também `where: { schoolId: { in: allowedSchoolIds } }`.
+- **Escrita (`create`/`createMany`):** injeta `data: { groupId }` automaticamente. `schoolId` **não**
+  é auto-injetado em escrita — cada use case recebe/valida explicitamente qual escola está sendo
+  usada (deve pertencer ao `groupId` corrente e, se `allowedSchoolIds != null`, estar contida nele).
+
+Isso garante que nenhum repositório "esqueça" de filtrar — o isolamento e o escopo são uma
+propriedade da camada de infra, não uma disciplina que cada repositório precisa lembrar de aplicar.
+
+### Convenções derivadas
+
+- **Prisma schema:** todo model de negócio tem `groupId String` (+ índice); models operacionais
+  também têm `schoolId String` (+ índice). `Group` e `School` (em `tenancy`) não têm essas colunas
+  (são elas próprias a raiz da hierarquia).
+- **Domínio (`enterprise`):** entidades recebem `groupId` (e `schoolId`, quando aplicável) como
+  props normais, setadas a partir do `GroupContext` no `execute()` do use case — nunca hardcoded,
+  nunca aceitas cruas de um DTO de entrada não confiável.
+- **Unicidade:** índices únicos que hoje seriam globais (CPF, `RoleName`) passam a ser compostos
+  com `groupId` (único **por group**, não globalmente). Índices que fazem sentido por escola (ex.:
+  `SchoolYear.year`) são compostos com `schoolId`.
+- **Testes:** repositórios in-memory replicam o filtro de `groupId`/`allowedSchoolIds` manualmente
+  (sem a Prisma extension) para os unit specs continuarem provando isolamento/escopo sem banco.
+- **JWT:** payload passa a incluir `groupId` (e a lista de `UserRole` é resolvida via banco no
+  `GroupScopeGuard`, não embutida no token, para revogação de acesso ser imediata).
+
 ## O que aproveitar no `conaa-controle-escolar`
 
 - Separar `domain` (regras de negócio puras) de `infra` (Nest/Prisma/HTTP) desde o início evita acoplamento e facilita testes unitários rápidos (sem banco).

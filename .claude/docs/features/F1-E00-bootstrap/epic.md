@@ -44,7 +44,7 @@ Estrutura conforme arquitetura-ignite.md §2:
 - [ ] `src/infra/database/prisma/prisma.service.ts` — estende `PrismaClient`, `OnModuleInit`/`OnModuleDestroy`.
 - [ ] `src/infra/database/database.module.ts` — registra `PrismaService` (sem repositórios ainda — cada ficha de domínio adiciona os seus).
 - [ ] `src/infra/auth/`:
-  - [ ] `jwt.strategy.ts` — valida payload com Zod, chave pública via env (base64).
+  - [ ] `jwt.strategy.ts` — valida payload com Zod, chave pública via env (base64). **Payload inclui `groupId` desde esta ficha** (claim obrigatório no schema Zod) — é a base que `F1-E0A` usa para popular o `GroupContext`; `jwt.strategy.ts` só valida o formato, não resolve escopo de escola (isso é responsabilidade do `GroupScopeGuard`, implementado em `F1-E0A` depois que `Group`/`School` existirem).
   - [ ] `jwt-auth.guard.ts` — registrado globalmente via `APP_GUARD`.
   - [ ] `public.decorator.ts` — `@Public()`.
   - [ ] `current-user.decorator.ts` — `@CurrentUser()`.
@@ -70,6 +70,15 @@ Estrutura conforme [arquitetura-frontend.md](../../../arquitetura-frontend.md) �
 - [ ] Página pública mínima (`app/(public)/login/page.tsx`) e página protegida mínima (`app/(portal)/page.tsx`) para provar que o roteamento e o proxy funcionam.
 - [ ] `.env.example` com a URL da API (`conaa-api`, rodando localmente em outra porta/processo).
 - [ ] `README.md` do repositório com instruções de setup local (`pnpm install`, `pnpm dev`, variável de ambiente apontando para o `conaa-api` local já rodando).
+
+### Multi-tenancy
+
+Esta ficha **não** implementa `Group`/`School` nem o mecanismo de escopo (`GroupContext`,
+`GroupScopeGuard`, Prisma extension) — isso é o núcleo de
+[`F1-E0A`](../F1-E0A-tenancy/spec-tenancy.md), que roda logo em seguida e ainda depende de models
+Prisma que não existem neste bootstrap. A única responsabilidade de tenancy aqui é preparar o
+terreno: o payload do JWT (`jwt.strategy.ts`, acima) já nasce com o campo `groupId`, para que
+`F1-E0A` não precise voltar a mexer no schema de autenticação.
 
 ### Atualizar documentação (neste hub)
 

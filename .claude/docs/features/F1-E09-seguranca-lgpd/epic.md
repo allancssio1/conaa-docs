@@ -37,4 +37,4 @@ Definir perfis de acesso com permissões por módulo, manter trilha de auditoria
 
 ## Próximo passo
 
-Quebrar este épico em specs dentro desta mesma pasta, usando [`_TEMPLATE-spec.md`](../_TEMPLATE-spec.md). Depois de criar a(s) spec(s), atualizar o status deste épico no [índice](../README.md).
+Já especificado em [`spec-seguranca-lgpd.md`](spec-seguranca-lgpd.md). Ver status no [índice](../README.md).

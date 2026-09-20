@@ -12,20 +12,23 @@ Cada épico tem uma pasta própria (`<ID>-<slug>/`) contendo `epic.md` (planejam
 | ID | Título | Camadas | Status | Depende de |
 | --- | --- | --- | --- | --- |
 | [F1-E00](F1-E00-bootstrap/epic.md) | Bootstrap dos repositórios (conaa-api + conaa-web) | backend, frontend | 🔵 especificado | — |
+| [F1-E0A](F1-E0A-tenancy/epic.md) | Multi-tenancy (Group e School) | backend, frontend | 🔵 especificado | F1-E00 |
+
+**F1-E0A é fundacional e roda antes de qualquer épico de domínio (F1-E01 em diante):** todo model de negócio a partir daqui carrega `groupId`/`schoolId` desde a primeira versão — ver [`arquitetura-ignite.md` §11](../../arquitetura-ignite.md#11-multi-tenancy-fundacional-desde-o-dia-zero).
 
 ## Fase 1 — MVP
 
 | ID | Título | Bounded context | Camadas | Status | Depende de |
 | --- | --- | --- | --- | --- | --- |
-| [F1-E01](F1-E01-cadastros-sis/epic.md) | Cadastros / SIS básico | `people`, `academic` | backend | 🔵 especificado | F1-E00 |
-| [F1-E02](F1-E02-matricula-rematricula/epic.md) | Matrícula, rematrícula e turmas | `academic` | backend | ⚪ épico | F1-E01 |
-| [F1-E03](F1-E03-frequencia/epic.md) | Gestão de frequência | `attendance` | backend | ⚪ épico | F1-E02, F1-E05 |
-| [F1-E04](F1-E04-avaliacoes-notas/epic.md) | Avaliações, notas e boletins | `assessment` | backend | ⚪ épico | F1-E02, F1-E05 |
-| [F1-E05](F1-E05-horarios/epic.md) | Horários e grade de aulas | `academic` | backend | ⚪ épico | F1-E02 |
-| [F1-E06](F1-E06-financeiro/epic.md) | Financeiro essencial | `finance` | backend | ⚪ épico | F1-E01, F1-E02 |
-| [F1-E07](F1-E07-relatorios/epic.md) | Relatórios administrativos e oficiais | `reporting` | backend | ⚪ épico | F1-E01…F1-E06 |
-| [F1-E08](F1-E08-portais-web/epic.md) | Portais web (pais, alunos, professores) | vários | frontend | ⚪ épico | F1-E01…F1-E06 |
-| [F1-E09](F1-E09-seguranca-lgpd/epic.md) | Segurança, perfis de acesso e LGPD | `iam` | backend | ⚪ épico | F1-E01 (transversal) |
+| [F1-E01](F1-E01-cadastros-sis/epic.md) | Cadastros / SIS básico | `people`, `academic` | backend | 🔵 especificado | F1-E00, F1-E0A |
+| [F1-E02](F1-E02-matricula-rematricula/epic.md) | Matrícula, rematrícula e turmas | `academic` | backend | 🔵 especificado | F1-E01 |
+| [F1-E03](F1-E03-frequencia/epic.md) | Gestão de frequência | `attendance` | backend | 🔵 especificado | F1-E02, F1-E05 |
+| [F1-E04](F1-E04-avaliacoes-notas/epic.md) | Avaliações, notas e boletins | `assessment` | backend | 🔵 especificado | F1-E02, F1-E05 |
+| [F1-E05](F1-E05-horarios/epic.md) | Horários e grade de aulas | `academic` | backend | 🔵 especificado | F1-E02 |
+| [F1-E06](F1-E06-financeiro/epic.md) | Financeiro essencial | `finance` | backend | 🔵 especificado | F1-E01, F1-E02 |
+| [F1-E07](F1-E07-relatorios/epic.md) | Relatórios administrativos e oficiais | `reporting` | backend | 🔵 especificado | F1-E01…F1-E06 |
+| [F1-E08](F1-E08-portais-web/epic.md) | Portais web (pais, alunos, professores) | vários | frontend | 🔵 especificado | F1-E01…F1-E06 |
+| [F1-E09](F1-E09-seguranca-lgpd/epic.md) | Segurança, perfis de acesso e LGPD | `iam` | backend | 🔵 especificado | F1-E01 (transversal) |
 
 ## Fase 2 — Eficiência & Comunicação
 
@@ -37,7 +40,7 @@ Cada épico tem uma pasta própria (`<ID>-<slug>/`) contendo `epic.md` (planejam
 | [F2-E04](F2-E04-biblioteca-patrimonio/epic.md) | Biblioteca e patrimônio | `library` (novo) | backend, frontend | ⚪ épico | F1-E01 |
 | [F2-E05](F2-E05-transporte/epic.md) | Transporte escolar | `transport` (novo) | backend, frontend | ⚪ épico | F1-E01, F1-E02 |
 | [F2-E06](F2-E06-rh-folha/epic.md) | RH e folha de pagamento | `hr` (novo) | backend, frontend | ⚪ épico | F1-E01 |
-| [F2-E07](F2-E07-multiunidade/epic.md) | Multiunidade / rede escolar | `iam` (extensão) | backend, frontend | ⚪ épico | F1-E01…F1-E09 |
+| [F2-E07](F2-E07-multiunidade/epic.md) | Multiunidade / rede escolar (dashboards e governança — isolamento/escopo já fundacional desde F1-E0A/F1-E09) | `iam` (extensão), `reporting` (extensão) | backend, frontend | ⚪ épico | F1-E0A, F1-E01…F1-E09 |
 | [F2-E08](F2-E08-lms-ead/epic.md) | LMS/EAD integrado básico | `lms` (novo) | backend, frontend | ⚪ épico | F1-E02, F1-E05 |
 
 ## Fase 3 — Analytics, IA & Diferenciação

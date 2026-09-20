@@ -38,4 +38,4 @@ Depende de F1-E01 (`Student`, `Turma`, `SchoolYear` já existentes). Integra com
 
 ## Próximo passo
 
-Quebrar este épico em specs dentro desta mesma pasta, usando [`_TEMPLATE-spec.md`](../_TEMPLATE-spec.md). Depois de criar a(s) spec(s), atualizar o status deste épico no [índice](../README.md).
+Já especificado em [`spec-matricula.md`](spec-matricula.md). Ver status no [índice](../README.md).

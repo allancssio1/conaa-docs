@@ -36,4 +36,4 @@ Nenhuma decisão maior em aberto — épico bem contido.
 
 ## Próximo passo
 
-Quebrar este épico em specs dentro desta mesma pasta, usando [`_TEMPLATE-spec.md`](../_TEMPLATE-spec.md). Depois de criar a(s) spec(s), atualizar o status deste épico no [índice](../README.md).
+Já especificado em [`spec-horarios.md`](spec-horarios.md). Ver status no [índice](../README.md).

@@ -37,4 +37,4 @@ Entregar o portal web (`conaa-web`) que expõe, por papel (responsável, profess
 
 ## Próximo passo
 
-Quebrar este épico em specs dentro desta mesma pasta, usando [`_TEMPLATE-spec.md`](../_TEMPLATE-spec.md). Depois de criar a(s) spec(s), atualizar o status deste épico no [índice](../README.md).
+Já especificado em [`spec-portais-web.md`](spec-portais-web.md). Ver status no [índice](../README.md).

@@ -27,7 +27,11 @@ Permitir que mantenedoras definam metas de desempenho acadêmico/financeiro por 
 
 ## Dependências e integrações
 
-Depende de F2-E07 (conceito de unidade e dashboard consolidado) e F3-E01 (indicadores). É o topo da pirâmide de multiunidade — só faz sentido especificar depois que F2-E07 e F3-E01 estiverem implementados.
+Depende de F2-E07 (dashboard consolidado por unidade) e F3-E01 (indicadores) — ambos já construídos
+sobre a base multi-tenant fundacional de [`F1-E0A`](../F1-E0A-tenancy/spec-tenancy.md)/`F1-E09`
+(isolamento por `Group`, escopo por `School`). Este épico não introduz nenhuma parte do isolamento
+em si, só metas/governança sobre dados já escopados. É o topo da pirâmide de multiunidade — só faz
+sentido especificar depois que F2-E07 e F3-E01 estiverem implementados.
 
 ## Decisões em aberto / riscos
 

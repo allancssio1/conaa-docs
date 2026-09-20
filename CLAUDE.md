@@ -80,6 +80,7 @@ Cada contexto vive em `conaa-api/src/domain/<contexto>/`. Mapeamento épico → 
 
 | Contexto | Épicos | Conteúdo |
 | --- | --- | --- |
+| `tenancy` | F1-E0A | Group (tenant) e School — fundação multi-tenant, base de todos os outros contextos |
 | `people` | F1-E01 | Alunos, responsáveis, professores, funcionários |
 | `academic` | F1-E01, F1-E02, F1-E05 | Séries, turmas, disciplinas, salas, calendário, matrícula, horários |
 | `attendance` | F1-E03 | Frequência |
@@ -95,6 +96,7 @@ Novos contextos são adicionados conforme novas fichas forem criadas nas fases s
 
 (Resumo — a fonte de verdade é [.claude/arquitetura-ignite.md](.claude/arquitetura-ignite.md), leia-a antes de implementar.)
 
+- **Multi-tenancy é fundacional, não opcional:** todo model de negócio carrega `groupId`; models operacionais também carregam `schoolId`. Toda query passa pelo `GroupContext`/Prisma extension — nunca aceitar `groupId`/`schoolId` vindos do corpo/param da requisição como fonte de autoridade. Ver [.claude/arquitetura-ignite.md §11](.claude/arquitetura-ignite.md#11-multi-tenancy-fundacional-desde-o-dia-zero) e [F1-E0A](.claude/docs/features/F1-E0A-tenancy/spec-tenancy.md).
 - Erros de negócio esperados → `Either<Error, Success>` (`left`/`right`), nunca `throw`.
 - Repositórios são `abstract class` em `application/repositories/` (não `interface`) — servem de token de DI.
 - 1 arquivo por use case em `application/useCases/`, nome kebab-case, classe `XxxUseCase`.

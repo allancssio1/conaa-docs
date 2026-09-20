@@ -10,11 +10,21 @@ Roadmap derivado de [Funcionalidades para um Sistema de Gestão Escolar em Três
 
 ## Sequenciamento
 
-Cadastros/SIS é pré-requisito de praticamente tudo (matrícula, turmas, financeiro, portais). Dentro da Fase 1, a ordem recomendada é:
+O CONAA é **multi-tenant desde o primeiro momento da arquitetura**: `F1-E0A` (Group/School,
+isolamento por `groupId` e escopo de permissão por `schoolId`) é fundacional e roda logo após o
+bootstrap, **antes** de qualquer épico de domínio — nenhum contexto de negócio é implementado sem
+essa base pronta. Cadastros/SIS é pré-requisito de praticamente tudo (matrícula, turmas,
+financeiro, portais). Dentro da Fase 1, a ordem recomendada é:
 
-1. `F1-E01` Cadastros/SIS → 2. `F1-E09` Segurança/LGPD (perfis de acesso, transversal desde o início) → 3. `F1-E02` Matrícula/turmas → 4. `F1-E05` Horários → 5. `F1-E03` Frequência e `F1-E04` Notas/boletins (em paralelo, ambos dependem de turmas/horários) → 6. `F1-E06` Financeiro → 7. `F1-E07` Relatórios → 8. `F1-E08` Portais (consome dados de todos os anteriores).
+0. `F1-E0A` Multi-tenancy (Group/School — fundacional, antes de tudo) → 1. `F1-E01` Cadastros/SIS →
+2. `F1-E09` Segurança/LGPD (perfis de acesso, incluindo o escopo por escola em `UserRole`,
+transversal desde o início) → 3. `F1-E02` Matrícula/turmas → 4. `F1-E05` Horários → 5. `F1-E03`
+Frequência e `F1-E04` Notas/boletins (em paralelo, ambos dependem de turmas/horários) → 6. `F1-E06`
+Financeiro → 7. `F1-E07` Relatórios → 8. `F1-E08` Portais (consome dados de todos os anteriores).
 
-Fases 2 e 3 pressupõem a Fase 1 estável em produção.
+Fases 2 e 3 pressupõem a Fase 1 estável em produção. `F2-E07` (Multiunidade/rede) deixou de
+introduzir qualquer parte do isolamento/escopo multi-tenant (isso já é fundacional desde `F1-E0A`/
+`F1-E09`) — passou a ser só dashboards consolidados e governança de rede sobre a base existente.
 
 ---
 
@@ -31,7 +41,8 @@ Fases 2 e 3 pressupõem a Fase 1 estável em produção.
 
 | Épico | Descrição | Prioridade | Estimativa | Depende de |
 | --- | --- | --- | --- | --- |
-| F1-E01 | Gestão de cadastros / SIS básico | Must | G | — |
+| F1-E0A | Multi-tenancy (Group e School) — fundacional | Must | M | F1-E00 |
+| F1-E01 | Gestão de cadastros / SIS básico | Must | G | F1-E0A |
 | F1-E02 | Matrícula, rematrícula e turmas | Must | G | F1-E01 |
 | F1-E03 | Gestão de frequência | Must | M | F1-E02, F1-E05 |
 | F1-E04 | Avaliações, notas e boletins | Must | G | F1-E02, F1-E05 |
@@ -61,7 +72,7 @@ Fases 2 e 3 pressupõem a Fase 1 estável em produção.
 | F2-E04 | Biblioteca e patrimônio | Should | M | F1-E01 |
 | F2-E05 | Transporte escolar | Should | M | F1-E01, F1-E02 |
 | F2-E06 | RH e folha de pagamento | Could | G | F1-E01 |
-| F2-E07 | Multiunidade / rede escolar | Should | G | F1-E01 a F1-E09 |
+| F2-E07 | Multiunidade / rede escolar (dashboards/governança — isolamento e escopo já fundacionais) | Should | G | F1-E0A, F1-E01 a F1-E09 |
 | F2-E08 | LMS/EAD integrado básico | Could | G | F1-E02, F1-E05 |
 
 ---
@@ -91,6 +102,7 @@ Fases 2 e 3 pressupõem a Fase 1 estável em produção.
 
 | ID | Épico | Fase | Prioridade | Estimativa |
 | --- | --- | --- | --- | --- |
+| F1-E0A | Multi-tenancy (Group e School) | 1 | Must | M |
 | F1-E01 | Cadastros / SIS básico | 1 | Must | G |
 | F1-E02 | Matrícula, rematrícula e turmas | 1 | Must | G |
 | F1-E03 | Gestão de frequência | 1 | Must | M |

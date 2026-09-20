@@ -94,7 +94,23 @@ Cada `features/<contexto>` é autocontido e opcionalmente mapeia 1:1 para um bou
 | UI | a definir (ex.: Tailwind + Radix/shadcn) — validar com o time antes da ficha de bootstrap |
 | Testes | `vitest`, `@testing-library/react`, `playwright` |
 
-## 10. O que aproveitar do padrão do backend
+## 10. Multi-tenancy
+
+O usuário autenticado pertence a exatamente um `Group` (tenant) e enxerga um conjunto de `School`
+dentro dele — ver [arquitetura-ignite.md §11](arquitetura-ignite.md#11-multi-tenancy-fundacional-desde-o-dia-zero)
+para o modelo completo. Implicações no frontend:
+
+- `shared/auth`: `useSession()` expõe `groupId` e `allowedSchoolIds` (`null` = todas as escolas do
+  group) resolvidos do backend — nunca inferidos/setados no cliente.
+- **Seletor de escola:** exibido em telas que agregam dados por escola sempre que o usuário tem
+  acesso a mais de uma (`allowedSchoolIds` com length > 1 ou `null` com mais de uma escola no
+  group); some quando só há uma escola no escopo.
+- `shared/api/client.ts` nunca envia `groupId`/`schoolId` como parâmetro de autoridade — o backend
+  resolve os dois a partir da sessão; o `schoolId` que a UI manda em filtros de tela é só um filtro
+  de conveniência dentro do conjunto já permitido pelo backend, revalidado lá.
+- Subdomínio por tenant (`<group>.conaa.app`) é citado como evolução futura, não faz parte do MVP.
+
+## 11. O que aproveitar do padrão do backend
 
 - Organização por domínio (`features/<contexto>` espelhando `domain/<contexto>`) mantém a navegação mental consistente entre os dois repositórios (`conaa-api` e `conaa-web`).
 - Reuso de Zod entre frontend e backend reduz duplicação de regras de validação (mesmo que os schemas não sejam literalmente compartilhados via pacote comum, a *fonte* de cada regra é a ficha da tarefa).

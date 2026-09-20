@@ -36,4 +36,4 @@ Depende de **todos** os épicos F1-E01 a F1-E06 — é uma camada de leitura sob
 
 ## Próximo passo
 
-Quebrar este épico em specs dentro desta mesma pasta, usando [`_TEMPLATE-spec.md`](../_TEMPLATE-spec.md). Depois de criar a(s) spec(s), atualizar o status deste épico no [índice](../README.md).
+Já especificado em [`spec-relatorios.md`](spec-relatorios.md). Ver status no [índice](../README.md).
