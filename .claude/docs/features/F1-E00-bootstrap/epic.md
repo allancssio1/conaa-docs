@@ -68,9 +68,13 @@ Estrutura conforme [arquitetura-frontend.md](../../../arquitetura-frontend.md) �
 
 - [ ] Projeto Next.js 16.3 inicializado (App Router).
 - [ ] Pastas base: `app/(public)/`, `app/(portal)/`, `features/`, `shared/ui/`, `shared/api/client.ts`, `shared/auth/`, `shared/lib/`.
+- [ ] `shadcn init` — gera `components.json` apontando `shared/ui/` como diretório de componentes (ver [design-system.md §1](../../../design-system.md#1-stack)).
+- [ ] `app/globals.css` — tokens do design system (`:root`/`.dark`, ver [design-system.md §2](../../../design-system.md#2-tokens-globalscss)) coladas exatamente como especificado, mais a config do Tailwind v4 (`@theme`/import, a validar contra a doc oficial).
+- [ ] `app/layout.tsx` — `next/font/google` com Public Sans (`--font-heading`) e Roboto (`--font-sans`, ver [design-system.md §3](../../../design-system.md#3-tipografia)); `ThemeProvider` (`next-themes`, `attribute="class"`, `defaultTheme="system"`, `enableSystem`); `<html suppressHydrationWarning>` (ver [design-system.md §4](../../../design-system.md#4-modo-escuro)).
+- [ ] `shared/ui/ThemeToggle.tsx` — alterna claro/escuro (ver [design-system.md §4](../../../design-system.md#4-modo-escuro)).
 - [ ] `shared/api/client.ts` — client HTTP tipado apontando para a API (usa variável de ambiente para a base URL do `conaa-api`, já que são repositórios/deploys separados), marcado `server-only` (ver `arquitetura-frontend.md` §4).
 - [ ] `proxy.ts` — placeholder de proteção de rota (sem lógica de sessão/perfil ainda, só estrutura — a lógica real de sessão/renovação entra em `F1-E10`).
-- [ ] `app/[grupo]/[escola]/` — estrutura de pastas do tenant na URL (sem lógica de branding ainda, isso entra em `F1-E0A`); página pública mínima (`app/[grupo]/[escola]/(public)/login/page.tsx`) e página protegida mínima (`app/[grupo]/[escola]/(portal)/page.tsx`) para provar que o roteamento e o proxy funcionam. `app/page.tsx` (raiz) com um texto simples de placeholder.
+- [ ] `app/[grupo]/[escola]/` — estrutura de pastas do tenant na URL (sem lógica de branding ainda, isso entra em `F1-E0A`); página pública mínima (`app/[grupo]/[escola]/(public)/login/page.tsx`, sem shell) e página protegida mínima (`app/[grupo]/[escola]/(portal)/page.tsx`, com o shell mínimo — sidebar + header com `ThemeToggle`, ver [design-system.md §6](../../../design-system.md#6-shell-do-portal), usando o componente `sidebar` do shadcn) para provar que o roteamento, o proxy, os tokens, a fonte e o tema funcionam juntos. `app/page.tsx` (raiz) com um texto simples de placeholder.
 - [ ] `next.config.ts` — headers de segurança básicos (ver [arquitetura-ignite.md §12](../../../arquitetura-ignite.md#12-segurança-de-aplicação-baseline) e `arquitetura-frontend.md` §6; a API exata de configuração deve ser validada contra a doc do Next 16.3 na hora de implementar).
 - [ ] `package.json` — script `audit`: `pnpm audit --prod --audit-level=high`.
 - [ ] `.github/workflows/ci.yml` — `push`: lint, testes unitários. `pull_request` para `main`: os mesmos passos + `next build` + `pnpm audit`. (Playwright entra no CI deste workflow a partir de `F1-E08`, quando existem os primeiros testes e2e de UI.)
@@ -113,9 +117,13 @@ conaa-api/.github/workflows/ci.yml
 conaa-api/README.md
 
 conaa-web/package.json
+conaa-web/components.json
+conaa-web/app/globals.css
+conaa-web/app/layout.tsx
 conaa-web/app/page.tsx
 conaa-web/app/[grupo]/[escola]/(public)/login/page.tsx
 conaa-web/app/[grupo]/[escola]/(portal)/page.tsx
+conaa-web/shared/ui/ThemeToggle.tsx
 conaa-web/shared/api/client.ts
 conaa-web/proxy.ts
 conaa-web/next.config.ts
@@ -135,6 +143,7 @@ conaa-web/README.md
 - [ ] `pnpm install` funciona de forma independente em cada repositório (`conaa-api` e `conaa-web`).
 - [ ] `conaa-api` sobe localmente (`pnpm dev` dentro do repositório) e conecta ao Postgres do `docker-compose.yml`.
 - [ ] `conaa-web` sobe localmente (`pnpm dev` dentro do repositório, apontando via env para o `conaa-api` local) e a página protegida redireciona para login sem sessão.
+- [ ] A página protegida renderiza com os tokens do design system, a fonte (Public Sans/Roboto) e o shell mínimo (sidebar + header); alternar claro/escuro no `ThemeToggle` funciona.
 - [ ] `prisma migrate dev` aplica a migração inicial (vazia) sem erro.
 - [ ] Suítes de teste (unit e e2e) do `conaa-api` rodam e passam (mesmo que triviais).
 - [ ] `CLAUDE.md` (neste hub) atualizado com os comandos reais de cada repositório.

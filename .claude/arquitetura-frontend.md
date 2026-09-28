@@ -62,7 +62,7 @@ Cada `features/<contexto>` é autocontido e opcionalmente mapeia 1:1 para um bou
 - App Router, Server Components por padrão; `"use client"` só onde há interatividade/estado local.
 - Componentes de página são **finos**: buscam dados (via `features/<contexto>/api` ou hooks) e compõem componentes de `features/<contexto>/components`. Nada de lógica de negócio dentro de `app/`.
 - Agrupamento de rotas por área de acesso: `(public)` (sem sessão) e `(portal)` (autenticado, com `proxy.ts` validando/renovando a sessão e `getSession()` resolvendo o papel).
-- `app/[grupo]/[escola]/layout.tsx` busca o branding do tenant (`GET /public/branding/:grupo/:escola`, com `cache()` do React) e aplica nome/logo/cor como variáveis CSS (a escola sobrescreve o valor do grupo). Slug de grupo ou escola inexistente → `notFound()`.
+- `app/[grupo]/[escola]/layout.tsx` busca o branding do tenant (`GET /public/branding/:grupo/:escola`, com `cache()` do React) e aplica nome/logo/cor: `School.primaryColor` → `Group.primaryColor` → cor padrão do design system, sobrescrevendo só os tokens de marca (`--primary`, `--primary-foreground`, `--ring`, `--sidebar-primary`, `--sidebar-ring`) — detalhe completo da cascata e da derivação em [design-system.md §5](design-system.md#5-branding-por-tenant). Slug de grupo ou escola inexistente → `notFound()`.
 - Rotas dinâmicas (`[id]`) e paralelas/interceptadas apenas quando o caso de uso exigir (ex.: modal de detalhe de aluno sobre a lista).
 
 ## 4. Camada de dados (`features/<contexto>/api` + `shared/api`)
@@ -112,6 +112,7 @@ checagem de `Origin`. Detalhe completo de emissão/renovação de sessão em
 
 - Componentes de UI puros, sem chamada de API nem lógica de negócio — recebem dados via props.
 - Base para os componentes específicos de `features/<contexto>/components`, que combinam componentes de `shared/ui` com dados/hooks do contexto.
+- Tokens, tipografia, tema claro/escuro, branding por tenant, shell do portal e inventário de componentes: ver [design-system.md](design-system.md) — leitura obrigatória junto com este documento para qualquer tarefa de frontend (ver `CLAUDE.md`).
 
 ## 8. Testes
 
@@ -126,7 +127,7 @@ checagem de `Origin`. Detalhe completo de emissão/renovação de sessão em
 | Framework | `next` (16.3), `react`, `react-dom` |
 | Formulários | `react-hook-form`, `@hookform/resolvers`, `zod` |
 | Estado servidor/cache | recursos nativos do App Router (`fetch` cache, Server Actions) — evitar lib extra de data-fetching a menos que a necessidade apareça |
-| UI | a definir (ex.: Tailwind + Radix/shadcn) — validar com o time antes da ficha de bootstrap |
+| UI | `tailwindcss` (v4), `shadcn/ui` (componentes copiados para `shared/ui/`, não pacote), `next-themes` (tema claro/escuro), `next/font` (Public Sans + Roboto) — ver [design-system.md](design-system.md) |
 | Testes | `vitest`, `@testing-library/react`, `playwright` |
 | Segredos de build | `PASSWORD_RESET_ENABLED` (flag da recuperação de senha por e-mail, default `false` — ver `F1-E10`) |
 

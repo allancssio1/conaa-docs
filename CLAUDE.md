@@ -9,7 +9,7 @@ Para **implementar uma tarefa**, leia **apenas**:
 1. Este arquivo (`CLAUDE.md`).
 2. A arquitetura relevante:
    - Backend/API → [.claude/arquitetura-ignite.md](.claude/arquitetura-ignite.md)
-   - Frontend/web → [.claude/arquitetura-frontend.md](.claude/arquitetura-frontend.md)
+   - Frontend/web → [.claude/arquitetura-frontend.md](.claude/arquitetura-frontend.md) **e** [.claude/design-system.md](.claude/design-system.md) (tokens, tipografia, tema, branding por tenant, componentes — leitura obrigatória junto, não opcional)
 3. A pasta do épico: `.claude/docs/features/<ID>-<slug>/`. Cada pasta tem um `epic.md` (planejamento: objetivo, histórias, dependências — não é para implementar direto) e, quando já especificado, uma ou mais `spec-*.md` com o nível de detalhe técnico para codar (entidades, use cases, rotas, arquivos). Ex.: `.claude/docs/features/F1-E01-cadastros-sis/epic.md` já contém esse nível de detalhe (épico pequeno, não foi quebrado em specs separadas). Ver status de cada épico em [`.claude/docs/features/README.md`](.claude/docs/features/README.md): só implemente um épico 🔵 especificado — se estiver ⚪ (só planejamento), pare e peça para especificá-lo primeiro.
 
 **NÃO leia `BACKLOG.md`, `ROADMAP.md` ou o documento-fonte de pesquisa para implementar.** Esses arquivos existem para quem está planejando o produto, não para quem está codando — a ficha da tarefa já destila tudo que é necessário (histórias, critérios de aceite, arquivos a tocar, contratos). Se a ficha referenciar algo do backlog, é só um link de rastreabilidade, não leitura obrigatória.
@@ -118,4 +118,5 @@ Novos contextos são adicionados conforme novas fichas forem criadas nas fases s
 - [.claude/BACKLOG.md](.claude/BACKLOG.md) — histórias de usuário e critérios de aceite por épico
 - [.claude/arquitetura-ignite.md](.claude/arquitetura-ignite.md) — arquitetura de referência do backend
 - [.claude/arquitetura-frontend.md](.claude/arquitetura-frontend.md) — arquitetura de referência do frontend
+- [.claude/design-system.md](.claude/design-system.md) — tokens, tipografia, tema e componentes do frontend
 - [.claude/docs/features/README.md](.claude/docs/features/README.md) — índice de fichas de tarefa e status

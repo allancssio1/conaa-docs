@@ -40,6 +40,7 @@ Invariantes:
 - `School.groupId` deve referenciar um `Group` existente com `status = 'ACTIVE'`.
 - Um `Group` com `status = 'SUSPENDED'` bloqueia login de qualquer usuário vinculado a ele (verificado no `GroupScopeGuard`, não nesta entidade).
 - `logoUrl` é uma URL externa informada no onboarding (`ponytail:` sem upload próprio; entra quando houver um port de storage no projeto).
+- `primaryColor` é **opcional com fallback**, não "a cor do tenant": quando ausente em `School` e em `Group`, o frontend usa a cor padrão do design system — o backend nunca inventa uma cor. O valor é um hex simples (`string?`, sem VO próprio); toda a derivação para tokens CSS (contraste, variantes claro/escuro) é responsabilidade do `conaa-web`, não desta ficha — ver [design-system.md §5](../../../design-system.md#5-branding-por-tenant).
 
 ## Use cases (`application`)
 
@@ -201,7 +202,7 @@ Sem telas de onboarding — a criação de `Group`/`School` é feita pela equipe
   por `groupId`/`schoolId`/`allowedStudentIds` manualmente, replicando a extension — documentar
   isso no arquivo de cada repositório in-memory subsequente).
 - Factories: `make-group.ts`, `make-school.ts`.
-- Unit specs: `RegisterSchoolUseCase` rejeita `groupId` inexistente ou `SUSPENDED`; `RegisterGroupUseCase`/`RegisterSchoolUseCase` rejeitam `slug` duplicado; `GetTenantBrandingUseCase` retorna `ResourceNotFoundError` para slug inexistente, grupo `SUSPENDED` ou escola `INACTIVE`.
+- Unit specs: `RegisterSchoolUseCase` rejeita `groupId` inexistente ou `SUSPENDED`; `RegisterGroupUseCase`/`RegisterSchoolUseCase` rejeitam `slug` duplicado; `GetTenantBrandingUseCase` retorna `ResourceNotFoundError` para slug inexistente, grupo `SUSPENDED` ou escola `INACTIVE`; `GetTenantBrandingUseCase` sem `primaryColor` em `School` nem em `Group` devolve o campo ausente (não uma cor default) — quem decide o fallback visual é o `conaa-web`, não o use case.
 - Teste de integração dedicado da extension: criar duas entidades de teste em `Group`s diferentes
   via Prisma real, provar que uma query sem filtro explícito (usando o client já estendido) só
   retorna a do `Group`/escola do contexto corrente — este teste é a prova de que o isolamento
