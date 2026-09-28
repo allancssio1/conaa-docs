@@ -52,6 +52,64 @@ para refletir corretamente sua trajetória escolar nos relatórios e portais.
 
 ---
 
+### F1-E10 — Identidade e acesso
+**Objetivo:** Dar a cada pessoa cadastrada uma conta de acesso: login, sessão, senha temporária de primeiro acesso e redefinição.
+**Prioridade:** Must · **Estimativa:** G · **Depende de:** F1-E0A, F1-E01
+
+#### F1-E10-U01
+Como **usuário do sistema**, quero fazer login com e-mail e senha,
+para acessar as funcionalidades do meu perfil.
+
+**Critérios de aceite:**
+- [ ] Login exige e-mail e senha cadastrados na escola/grupo correto.
+- [ ] Após 5 tentativas malsucedidas seguidas, a conta fica temporariamente bloqueada.
+- [ ] Mensagem de erro não revela se o problema foi o e-mail ou a senha.
+
+#### F1-E10-U02
+Como **secretaria**, quero criar o acesso de uma pessoa já cadastrada (responsável, professor, funcionário) com uma senha temporária,
+para liberar o uso do sistema sem depender de autoatendimento.
+
+**Critérios de aceite:**
+- [ ] A senha temporária é exibida uma única vez, na tela de criação do acesso.
+- [ ] No primeiro login, o usuário é obrigado a definir uma senha própria.
+- [ ] A senha temporária expira se não for usada em 72 horas.
+
+#### F1-E10-U03
+Como **secretaria**, quero redefinir a senha ou desativar o acesso de um usuário,
+para lidar com esquecimento de senha ou desligamento de alguém da escola.
+
+**Critérios de aceite:**
+- [ ] Redefinir a senha gera uma nova senha temporária e invalida imediatamente as sessões abertas daquele usuário.
+- [ ] Desativar um usuário impede login e invalida imediatamente as sessões abertas.
+- [ ] Nenhuma dessas ações pode ser feita por um usuário sem o perfil adequado, nem contra um administrador, salvo por outro administrador.
+
+#### F1-E10-U04
+Como **usuário do sistema**, quero trocar minha própria senha e poder encerrar todas as outras sessões abertas,
+para manter minha conta segura se suspeitar de acesso indevido.
+
+**Critérios de aceite:**
+- [ ] Trocar a senha exige informar a senha atual.
+- [ ] Existe uma ação de "sair de todos os dispositivos" que invalida todas as sessões, exceto a atual (ou todas, dependendo da implementação).
+
+#### F1-E10-U05
+Como **equipe CONAA**, quero criar ou redefinir o administrador de uma escola/rede recém-onboardada,
+para entregar o acesso inicial ao cliente sem depender de auto-cadastro.
+
+**Critérios de aceite:**
+- [ ] A ação exige autenticação de administrador da plataforma, não de um usuário comum.
+- [ ] O administrador criado já nasce com o perfil de administrador daquele grupo.
+
+#### F1-E10-U06
+Como **usuário do sistema**, quero recuperar minha senha por e-mail sem depender da secretaria,
+para não ficar bloqueado quando a secretaria não está disponível.
+
+**Critérios de aceite:**
+- [ ] Funcionalidade implementada e testada, mas desligada por padrão no MVP (fica disponível para ativação futura sem retrabalho).
+- [ ] Quando ativa, o pedido de recuperação nunca revela se o e-mail existe ou não no sistema.
+- [ ] O link de redefinição expira em 1 hora e só pode ser usado uma vez.
+
+---
+
 ### F1-E02 — Matrícula, rematrícula e turmas
 **Objetivo:** Processo completo de matrícula/rematrícula com controle de vagas e regras de promoção.
 **Prioridade:** Must · **Estimativa:** G · **Depende de:** F1-E01
@@ -268,8 +326,8 @@ para acompanhar meu próprio desempenho.
 ---
 
 ### F1-E09 — Segurança, perfis de acesso e LGPD
-**Objetivo:** Perfis de acesso, trilha de auditoria e gestão de consentimento conforme LGPD.
-**Prioridade:** Must · **Estimativa:** M · **Depende de:** F1-E01 (transversal)
+**Objetivo:** Perfis de acesso, trilha de auditoria, direitos do titular e gestão de consentimento conforme LGPD.
+**Prioridade:** Must · **Estimativa:** M · **Depende de:** F1-E01, F1-E10 (transversal)
 
 #### F1-E09-U01
 Como **administrador do sistema**, quero definir perfis de acesso (secretaria, coordenação, professor, financeiro, direção, responsável, aluno) com permissões específicas,
@@ -296,6 +354,23 @@ para exercer meus direitos previstos na LGPD.
 - [ ] Existe uma tela de termo de consentimento apresentada no primeiro acesso ou quando o termo é atualizado.
 - [ ] Responsável pode revogar consentimento a qualquer momento, com registro de data.
 - [ ] Status de consentimento por aluno é consultável pela secretaria/direção.
+
+#### F1-E09-U04
+Como **responsável**, quero exportar todos os dados cadastrados do meu filho,
+para exercer meu direito de acesso e portabilidade previsto na LGPD.
+
+**Critérios de aceite:**
+- [ ] Exportação inclui dados pessoais, matrículas, frequência, notas já publicadas, títulos financeiros e consentimentos do aluno.
+- [ ] Responsável só consegue exportar dados dos próprios filhos, nunca de outro aluno.
+- [ ] A exportação em si fica registrada na trilha de auditoria.
+
+#### F1-E09-U05
+Como **responsável**, quero um canal claro para pedir correção ou eliminação dos dados do meu filho,
+para exercer meus direitos de titular quando a exportação não resolve.
+
+**Critérios de aceite:**
+- [ ] Existe uma página de privacidade com o contato do encarregado (DPO) da escola/rede.
+- [ ] A página explica, em linguagem simples, como pedir correção ou eliminação de dados.
 
 ---
 

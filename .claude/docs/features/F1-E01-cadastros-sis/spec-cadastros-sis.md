@@ -33,7 +33,7 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 - `Guardian` é **group-level**, sem `schoolId` — um responsável pode ter filhos em escolas diferentes do mesmo group (ex.: uma secretaria com dois filhos em duas escolas da rede).
 - `SchoolYear`, `Serie`, `Turma`, `Disciplina`, `Sala` carregam `schoolId` — estrutura acadêmica é por escola, não compartilhada entre escolas do mesmo group.
 - Unicidade: CPF (`Student`, `Guardian`, `Teacher`, `Staff`) único **por group**, não globalmente; `SchoolYear.year` único **por escola** (duas escolas do mesmo group podem ter, cada uma, seu "2026").
-- `RegisterStudentUseCase`/`CreateTurmaUseCase`/etc. recebem `schoolId` na entrada e chamam `assertSchoolInScope` (de `F1-E0A`) antes de gravar.
+- `RegisterStudentUseCase`/`CreateTurmaUseCase`/etc. **não** recebem `schoolId` como parâmetro de entrada — a Prisma extension injeta o `schoolId` da sessão automaticamente na escrita (ver `arquitetura-ignite.md` §11; não existe mais um helper de validação contra uma lista de escolas, porque uma sessão é sempre de uma única escola).
 
 ## Modelo de domínio (`enterprise`)
 

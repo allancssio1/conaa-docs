@@ -51,13 +51,16 @@ Estrutura conforme arquitetura-ignite.md §2:
   - [ ] `auth.module.ts`.
 - [ ] `src/infra/http/pipes/zod-validation-pipe.ts`.
 - [ ] `src/infra/http/http.module.ts` — importa `DatabaseModule`; sem controllers ainda.
-- [ ] `src/app.module.ts` — composition root: `ConfigModule.forRoot({ validate, isGlobal: true })`, `AuthModule`, `HttpModule`, `EnvModule`.
+- [ ] `src/app.module.ts` — composition root: `ConfigModule.forRoot({ validate, isGlobal: true })`, `AuthModule`, `HttpModule`, `EnvModule`, `ThrottlerModule.forRoot(...)` + `{ provide: APP_GUARD, useClass: ThrottlerGuard }`.
+- [ ] `src/main.ts` — `app.use(helmet())`, `app.set('trust proxy', 1)` (ver [arquitetura-ignite.md §12](../../../arquitetura-ignite.md#12-segurança-de-aplicação-baseline)). Sem `app.enableCors()` — a API só é chamada pelo servidor do `conaa-web` (padrão BFF, ver `arquitetura-frontend.md` §6).
 - [ ] `prisma/schema.prisma` — apenas datasource/generator configurados, sem models de negócio.
-- [ ] `test/setup-e2e.ts` — cria schema Postgres isolado por execução (`randomUUID()`), roda `prisma migrate deploy`, derruba schema no `afterAll`.
+- [ ] `test/setup-e2e.ts` — cria schema Postgres isolado **por arquivo** de teste e2e (`randomUUID()`), roda `prisma migrate deploy`, derruba o schema no `afterAll` daquele arquivo.
 - [ ] `vitest.config.ts` (unitário) e `vitest.config.e2e.ts` (e2e, com `setupFiles`).
 - [ ] `.env.example` com todas as variáveis exigidas pelo schema de env.
-- [ ] `docker-compose.yml` — Postgres local de desenvolvimento (fica neste repositório, junto do que o consome).
-- [ ] `README.md` do repositório com instruções de setup local (`pnpm install`, subir Postgres via `docker compose up`, `pnpm prisma migrate dev`, `pnpm dev`).
+- [ ] `docker-compose.yml` — Postgres local (dev **e** testes); só isso — não há Dockerfile da aplicação nesta ficha, a API roda com `pnpm dev`/`pnpm test` direto no host. Dockerfile de deploy entra no épico de deploy, ainda não especificado.
+- [ ] `package.json` — script `audit`: `pnpm audit --prod --audit-level=high`.
+- [ ] `.github/workflows/ci.yml` — `push` (qualquer branch): lint, typecheck, testes unitários. `pull_request` para `main`: os mesmos passos + testes e2e (Postgres como `services:` do job, mesma imagem do `docker-compose.yml`) + `pnpm audit`.
+- [ ] `README.md` do repositório com instruções de setup local (`pnpm install`, subir Postgres via `docker compose up`, `pnpm prisma migrate dev`, `pnpm dev`) e uma nota sobre configurar a proteção da branch `main` no GitHub (merge só com os checks do CI verdes — configuração feita direto no GitHub, não neste repositório).
 
 ### `conaa-web` (Next.js 16.3)
 
@@ -65,11 +68,14 @@ Estrutura conforme [arquitetura-frontend.md](../../../arquitetura-frontend.md) �
 
 - [ ] Projeto Next.js 16.3 inicializado (App Router).
 - [ ] Pastas base: `app/(public)/`, `app/(portal)/`, `features/`, `shared/ui/`, `shared/api/client.ts`, `shared/auth/`, `shared/lib/`.
-- [ ] `shared/api/client.ts` — client HTTP tipado apontando para a API (usa variável de ambiente para a base URL do `conaa-api`, já que são repositórios/deploys separados).
-- [ ] `proxy.ts` — placeholder de proteção de rota (sem lógica de perfil ainda, só estrutura).
-- [ ] Página pública mínima (`app/(public)/login/page.tsx`) e página protegida mínima (`app/(portal)/page.tsx`) para provar que o roteamento e o proxy funcionam.
+- [ ] `shared/api/client.ts` — client HTTP tipado apontando para a API (usa variável de ambiente para a base URL do `conaa-api`, já que são repositórios/deploys separados), marcado `server-only` (ver `arquitetura-frontend.md` §4).
+- [ ] `proxy.ts` — placeholder de proteção de rota (sem lógica de sessão/perfil ainda, só estrutura — a lógica real de sessão/renovação entra em `F1-E10`).
+- [ ] `app/[grupo]/[escola]/` — estrutura de pastas do tenant na URL (sem lógica de branding ainda, isso entra em `F1-E0A`); página pública mínima (`app/[grupo]/[escola]/(public)/login/page.tsx`) e página protegida mínima (`app/[grupo]/[escola]/(portal)/page.tsx`) para provar que o roteamento e o proxy funcionam. `app/page.tsx` (raiz) com um texto simples de placeholder.
+- [ ] `next.config.ts` — headers de segurança básicos (ver [arquitetura-ignite.md §12](../../../arquitetura-ignite.md#12-segurança-de-aplicação-baseline) e `arquitetura-frontend.md` §6; a API exata de configuração deve ser validada contra a doc do Next 16.3 na hora de implementar).
+- [ ] `package.json` — script `audit`: `pnpm audit --prod --audit-level=high`.
+- [ ] `.github/workflows/ci.yml` — `push`: lint, testes unitários. `pull_request` para `main`: os mesmos passos + `next build` + `pnpm audit`. (Playwright entra no CI deste workflow a partir de `F1-E08`, quando existem os primeiros testes e2e de UI.)
 - [ ] `.env.example` com a URL da API (`conaa-api`, rodando localmente em outra porta/processo).
-- [ ] `README.md` do repositório com instruções de setup local (`pnpm install`, `pnpm dev`, variável de ambiente apontando para o `conaa-api` local já rodando).
+- [ ] `README.md` do repositório com instruções de setup local (`pnpm install`, `pnpm dev`, variável de ambiente apontando para o `conaa-api` local já rodando) e a mesma nota sobre proteção da branch `main`.
 
 ### Multi-tenancy
 
@@ -95,6 +101,7 @@ conaa-api/src/infra/database/database.module.ts
 conaa-api/src/infra/auth/**
 conaa-api/src/infra/http/pipes/zod-validation-pipe.ts
 conaa-api/src/infra/http/http.module.ts
+conaa-api/src/main.ts
 conaa-api/src/app.module.ts
 conaa-api/prisma/schema.prisma
 conaa-api/test/setup-e2e.ts
@@ -102,21 +109,25 @@ conaa-api/vitest.config.ts
 conaa-api/vitest.config.e2e.ts
 conaa-api/.env.example
 conaa-api/docker-compose.yml
+conaa-api/.github/workflows/ci.yml
 conaa-api/README.md
 
 conaa-web/package.json
-conaa-web/app/(public)/login/page.tsx
-conaa-web/app/(portal)/page.tsx
+conaa-web/app/page.tsx
+conaa-web/app/[grupo]/[escola]/(public)/login/page.tsx
+conaa-web/app/[grupo]/[escola]/(portal)/page.tsx
 conaa-web/shared/api/client.ts
 conaa-web/proxy.ts
+conaa-web/next.config.ts
 conaa-web/.env.example
+conaa-web/.github/workflows/ci.yml
 conaa-web/README.md
 ```
 
 ## Testes
 
 - [ ] `conaa-api`: um spec trivial (ex.: `either.spec.ts`) só para validar que o harness Vitest unitário roda.
-- [ ] `conaa-api`: um e2e trivial (ex.: health check endpoint público) para validar que `setup-e2e.ts` sobe o schema isolado corretamente.
+- [ ] `conaa-api`: um e2e trivial (ex.: health check endpoint público) para validar que `setup-e2e.ts` sobe o schema isolado corretamente **e** que a resposta traz o header `x-content-type-options: nosniff` (prova de que o `helmet()` está ativo).
 - [ ] `conaa-web`: build (`next build`) sem erros.
 
 ## Definition of Done

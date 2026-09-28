@@ -55,7 +55,7 @@ Invariantes:
 | `GetTeacherScheduleUseCase` | `get-teacher-schedule.ts` | `teacherId`, `date?` (para saber a versão vigente) | `Either<ResourceNotFoundError, { horarios: Horario[] }>` | — |
 | `GetTurmaScheduleUseCase` | `get-turma-schedule.ts` | `turmaId`, `date?` | `Either<ResourceNotFoundError, { horarios: Horario[] }>` | — |
 
-Ports (`application/repositories/`): `HorariosRepository` — inclui `findConflictingByTeacher(teacherId, dayOfWeek, startTime, endTime, effectiveFrom)` e `findConflictingBySala(salaId, ...)`.
+Ports (`application/repositories/`): `HorariosRepository` — inclui `findConflictingByTeacher(teacherId, dayOfWeek, startTime, endTime, effectiveFrom)`, `findConflictingBySala(salaId, ...)` e `existsActiveFor(teacherId, turmaId, disciplinaId, date): Promise<boolean>` (usado por `F1-E03`/`F1-E04` para confirmar que um professor só lança presença/nota de uma turma/disciplina onde de fato tem horário vigente naquela data — ver "Perfis exigidos" de cada spec).
 
 Regras de negócio principais:
 - `CreateHorarioUseCase`/`UpdateHorarioUseCase`: checam conflito de professor (mesmo `teacherId`, mesmo `dayOfWeek`, intervalo de horário sobreposto, período de vigência sobreposto) e de sala (mesma lógica trocando `teacherId` por `salaId`) antes de salvar.

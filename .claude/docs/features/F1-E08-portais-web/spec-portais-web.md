@@ -9,7 +9,7 @@
 | Prioridade | Must |
 | Estimativa | G |
 | Bounded context(s) | vários (`people`, `academic`, `attendance`, `assessment`, `finance`) — camada frontend |
-| Depende de | F1-E01 a F1-E06 |
+| Depende de | F1-E01 a F1-E06, F1-E09, F1-E10 |
 | Rastreabilidade | [`BACKLOG.md`](../../../BACKLOG.md) — buscar por `### F1-E08` para histórias/critérios completos (referência, não leitura obrigatória) |
 
 ## Objetivo
@@ -30,7 +30,7 @@ Nenhum use case de `F1-E01` retorna "todos os alunos vinculados a um responsáve
 
 ### `ListGuardianStudentsUseCase` — `conaa-api/src/domain/people/application/useCases/list-guardian-students.ts`
 
-- Entrada: `guardianId` (extraído do usuário autenticado via `@CurrentUser()`).
+- Entrada: `guardianId` (resolvido a partir de `User.person` do usuário autenticado — `F1-E10` — via `GetMeUseCase`/`@CurrentUser()`; um `User` com `person.type != 'GUARDIAN'` não chama este use case).
 - Saída: `Either<ResourceNotFoundError, { students: Student[] }>`.
 - Ports usados: `StudentGuardiansRepository`, `StudentsRepository` (ambos já existem, de `F1-E01`).
 - Regra: retorna todos os `Student`s vinculados ao `guardianId` via `StudentGuardian`, independente do `role`.
@@ -40,10 +40,10 @@ Nenhum use case de `F1-E01` retorna "todos os alunos vinculados a um responsáve
 
 Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite.md#11-multi-tenancy-fundacional-desde-o-dia-zero) e [`F1-E0A`](../F1-E0A-tenancy/spec-tenancy.md); nota de frontend em [`arquitetura-frontend.md` §10](../../../arquitetura-frontend.md#10-multi-tenancy). Específico deste épico:
 
-- O usuário autenticado (qualquer papel) pertence a exatamente um `Group` — login resolve `groupId` e `allowedSchoolIds` (via `GroupScopeGuard`), expostos ao frontend por `useSession()`.
-- `ListGuardianStudentsUseCase` já retorna só filhos dentro do `groupId` do responsável (a Prisma extension de `F1-E0A` garante isso sem lógica extra no use case).
-- `proxy.ts`/`shared/auth` não precisam reimplementar nenhuma checagem de group — só a checagem de **papel** (`role`) descrita na seção seguinte é responsabilidade desta ficha.
-- **Seletor de escola** (`SchoolSelector`, componente de `F1-E0A`): reaproveitado aqui para o professor que leciona em mais de uma escola do group e para o admin do group; responsável/aluno normalmente não precisam dele (escopo natural é "meus filhos"/"eu mesmo").
+- O usuário autenticado (qualquer papel) pertence a um `Group` e sua sessão está presa a uma `School` — login resolve `groupId`/`schoolId` (via `GroupScopeGuard`), expostos ao frontend por `useSession()`/`getSession()` (`F1-E10`).
+- `ListGuardianStudentsUseCase` já retorna só filhos dentro do `groupId` do responsável (a Prisma extension de `F1-E0A` garante isso sem lógica extra no use case); a restrição por aluno em todos os demais endpoints (`allowedStudentIds`, `F1-E09`) é o que impede um responsável de trocar `studentId` na URL e ver dado de outro aluno — ver "IDOR" nos Testes.
+- `proxy.ts`/`shared/auth` não precisam reimplementar nenhuma checagem de group/escola — só a checagem de **papel** descrita na seção seguinte é responsabilidade desta ficha.
+- **Sem seletor de escola:** professor que leciona em mais de uma escola do group entra por uma URL diferente para cada uma (novo login a cada troca, ver `arquitetura-frontend.md` §10) — não há mais `SchoolSelector` a reaproveitar aqui.
 
 ## Modelo de domínio (`enterprise`)
 
@@ -51,7 +51,7 @@ Nenhuma outra entidade nova além do use case acima. O restante desta ficha é c
 
 ## Rotas e controle de acesso (`conaa-web`)
 
-- `proxy.ts`: já resolve autenticação/sessão (`arquitetura-frontend.md` §6); esta ficha adiciona a checagem de **papel** por grupo de rota — responsável só acessa `/(portal)/responsavel/**`, professor só `/(portal)/professor/**`, aluno só `/(portal)/aluno/**`. Perfil vem do JWT (`@CurrentUser()` no backend já expõe `sub`; o payload do token precisa incluir o(s) papel(is) do usuário — se `F1-E09` ainda não existir, usar um campo simples `role` no JWT emitido no login, a ser substituído pelo modelo fino de perfis quando `F1-E09` for implementado).
+- `proxy.ts` (`F1-E10`) já resolve/renova a sessão (`arquitetura-frontend.md` §6), mas só faz a checagem otimista de que o cookie existe — não sabe o papel do usuário. Esta ficha adiciona a checagem de **papel** por grupo de rota — responsável só acessa `/(portal)/responsavel/**`, professor só `/(portal)/professor/**`, aluno só `/(portal)/aluno/**` — no `layout.tsx` de cada área, via `getSession()` (`GET /me`, `F1-E10`; papéis de verdade vêm de `F1-E09`, já resolvido no backend). Como um layout não é re-renderizado em navegação entre páginas irmãs, as páginas de cada área também chamam `getSession()` (o `cache()` do React evita chamada duplicada — ver `arquitetura-frontend.md` §6); a proteção de fato é sempre a API, isso aqui só evita renderizar tela/ação errada.
 - `shared/auth`: hook `useSession()` expõe `role` e, para responsável, o `guardianId`/lista de filhos (via `ListGuardianStudentsUseCase`).
 
 ### Portal do responsável (`F1-E08-U01`)
@@ -73,7 +73,7 @@ Nenhuma outra entidade nova além do use case acima. O restante desta ficha é c
 
 - `app/(portal)/aluno/boletim/page.tsx` — consome `GET /students/:studentId/report-card` com `studentId` resolvido do próprio usuário logado (aluno só vê a si mesmo).
 - `app/(portal)/aluno/frequencia/page.tsx` — consome o novo `GET /students/:studentId/attendance-summary`.
-- Ambas as telas são somente leitura — nenhum botão de edição renderizado para o papel `aluno` (reforçado também no backend: os controllers de lançamento já exigem perfil `professor`/`secretaria`, não `aluno`).
+- Ambas as telas são somente leitura — nenhum botão de edição renderizado para o papel `aluno` (reforçado também no backend: os controllers de lançamento já exigem perfil `professor`/`secretaria`, não `aluno`; e mesmo que o frontend tentasse mandar um `studentId` diferente, `allowedStudentIds` de `F1-E09` restringe o aluno a si mesmo — a UI nunca é a única barreira).
 
 ## Componentes e API client (`conaa-web`)
 
@@ -107,9 +107,9 @@ Nenhuma outra entidade nova além do use case acima. O restante desta ficha é c
 
 ## Testes
 
-- Backend: unit spec para `ListGuardianStudentsUseCase` e `GetStudentAttendanceSummaryUseCase` (repositórios in-memory já existentes de `F1-E01`/`F1-E03`); e2e para os dois novos controllers.
-- Frontend: teste de componente para `AttendanceSummaryCard`; teste de `proxy.ts` garantindo que um usuário com `role = 'RESPONSAVEL'` não acessa `/(portal)/professor/**` (redirect).
-- E2E (Playwright, crítico): login como responsável → seleciona filho → vê boletim e financeiro; login como aluno → vê boletim (sem botão de edição).
+- Backend: unit spec para `ListGuardianStudentsUseCase` e `GetStudentAttendanceSummaryUseCase` (repositórios in-memory já existentes de `F1-E01`/`F1-E03`); e2e para os dois novos controllers, incluindo **IDOR**: responsável autenticado pedindo `attendance-summary`/`report-card`/`financial-status` de um `studentId` que não é filho dele → `404` (o `allowedStudentIds` de `F1-E09` resolve isso nos repositórios já existentes, sem lógica nova nestes dois use cases).
+- Frontend: teste de componente para `AttendanceSummaryCard`; teste do `layout.tsx` de cada área garantindo que um usuário com papel `RESPONSAVEL` não acessa `/(portal)/professor/**` (redirect) — a checagem agora é via `getSession()`, não mais uma prop simples de `role` no `proxy.ts` (ver "Rotas e controle de acesso").
+- E2E (Playwright, crítico, roda no CI do `conaa-web` a partir desta ficha — job sobe Postgres + `conaa-api` no mesmo workflow, ver `F1-E00`): login como responsável → seleciona filho → vê boletim e financeiro; login como aluno → vê boletim (sem botão de edição); responsável tentando abrir a URL do boletim de outro aluno (fora dos seus filhos) → erro/404, nunca o boletim de fato.
 
 ## Definition of Done
 
@@ -118,4 +118,6 @@ Nenhuma outra entidade nova além do use case acima. O restante desta ficha é c
 - [ ] Cada portal (`responsavel`, `professor`, `aluno`) acessível apenas pelo papel correspondente.
 - [ ] Portal do responsável permite alternar entre múltiplos filhos.
 - [ ] Acesso do aluno é comprovadamente somente leitura (nenhum controle de edição renderizado nem endpoint de escrita aceito para esse papel).
+- [ ] Testes de IDOR (acima) passando para os três endpoints consumidos pelos portais (`report-card`, `attendance-summary`, `financial-status`).
+- [ ] Playwright rodando no CI do `conaa-web` (não só localmente).
 - [ ] `.claude/docs/features/README.md` atualizado: status de `F1-E08` para 🟢 quando implementado, com nota sobre comunicados/conteúdo de aula ficarem para épicos futuros.

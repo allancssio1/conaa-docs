@@ -61,7 +61,7 @@ Invariantes:
 | --- | --- | --- | --- | --- |
 | `ConfigureGradeFormulaUseCase` | `configure-grade-formula.ts` | `segment`, `scaleType`, `weights`, `recoveryMinGrade` | `Either<InvalidWeightsError, { gradeFormula: GradeFormula }>` | `invalid-weights-error.ts` (soma dos pesos deve ser 100) |
 | `CreateAssessmentUseCase` | `create-assessment.ts` | `turmaId`, `disciplinaId`, `name`, `type`, `maxScore`, `period` | `Either<ResourceNotFoundError, { assessment: Assessment }>` | — |
-| `LaunchGradesUseCase` | `launch-grades.ts` | `assessmentId`, `grades: { studentId, value }[]` | `Either<ResourceNotFoundError \| InvalidGradeValueError, { grades: Grade[] }>` | `invalid-grade-value-error.ts` |
+| `LaunchGradesUseCase` | `launch-grades.ts` | `assessmentId`, `grades: { studentId, value }[]`, `teacherId?` | `Either<ResourceNotFoundError \| InvalidGradeValueError \| NotAllowedError, { grades: Grade[] }>` | `invalid-grade-value-error.ts` |
 | `PublishAssessmentUseCase` | `publish-assessment.ts` | `assessmentId` | `Either<ResourceNotFoundError, void>` | — |
 | `CalculateFinalAverageUseCase` | `calculate-final-average.ts` | `studentId`, `turmaId`, `disciplinaId`, `period` | `Either<ResourceNotFoundError, { average: number; recoveryApplied: boolean }>` | — |
 | `GenerateReportCardUseCase` | `generate-report-card.ts` | `studentId`, `period?` | `Either<ResourceNotFoundError, { entries: { disciplina: string; grades: Grade[]; average: number }[] }>` | — |
@@ -70,7 +70,7 @@ Invariantes:
 Ports (`application/repositories/`): `GradeFormulasRepository`, `AssessmentsRepository`, `GradesRepository`.
 
 Regras de negócio principais:
-- `LaunchGradesUseCase`: salva sempre com `Assessment.status = 'DRAFT'` até `PublishAssessmentUseCase` ser chamado; permite reexecução (upsert por `assessmentId + studentId`) para lançamentos incrementais/rascunho.
+- `LaunchGradesUseCase`: salva sempre com `Assessment.status = 'DRAFT'` até `PublishAssessmentUseCase` ser chamado; permite reexecução (upsert por `assessmentId + studentId`) para lançamentos incrementais/rascunho. Quando `teacherId` é informado (o controller só o passa se o ator autenticado tiver papel `professor`), exige `HorariosRepository.existsActiveFor(teacherId, turmaId, disciplinaId, date)` (`turmaId`/`disciplinaId` do `Assessment`, `date` = hoje; de `F1-E05`) — senão `NotAllowedError`. Mesma lógica de `RecordAttendanceUseCase` (`F1-E03`): impede lançar nota fora da própria disciplina/turma.
 - `PublishAssessmentUseCase`: flip irreversível de `DRAFT → PUBLISHED` (sem endpoint de despublicar nesta ficha).
 - `CalculateFinalAverageUseCase`: aplica `GradeFormula` do segmento da série da turma; se `média < recoveryMinGrade`, busca `Grade` do tipo `'RECUPERACAO'` (mesmo mecanismo de `Assessment.type`) e recalcula conforme a regra fixa descrita acima.
 - `GenerateTranscriptUseCase`: consolida `EnrollmentsRepository` (de `F1-E02`) + médias por ano letivo; usado para documento de transferência.
@@ -137,7 +137,7 @@ Perfis exigidos: `ConfigureGradeFormulaUseCase`/`CreateAssessmentUseCase`/`Publi
 
 - Repositórios in-memory: `in-memory-grade-formulas-repository.ts`, `in-memory-assessments-repository.ts`, `in-memory-grades-repository.ts`.
 - Factories: `make-grade-formula.ts`, `make-assessment.ts`, `make-grade.ts`.
-- Unit specs: validação de pesos somando 100 (`ConfigureGradeFormulaUseCase`), validação de nota fora da escala (`LaunchGradesUseCase`), boletim não expõe rascunho (`GenerateReportCardUseCase`), cálculo de recuperação (`CalculateFinalAverageUseCase`).
+- Unit specs: validação de pesos somando 100 (`ConfigureGradeFormulaUseCase`), validação de nota fora da escala (`LaunchGradesUseCase`), professor sem horário vigente naquela turma/disciplina → `NotAllowedError` (`LaunchGradesUseCase`, usando o `in-memory-horarios-repository.ts` de `F1-E05`), boletim não expõe rascunho (`GenerateReportCardUseCase`), cálculo de recuperação (`CalculateFinalAverageUseCase`).
 - E2E: um `.e2e-spec.ts` por controller listado na seção HTTP.
 
 ## Definition of Done

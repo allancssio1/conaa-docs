@@ -54,14 +54,14 @@ Invariantes:
 
 | Use case | Arquivo | Entrada | Saída (`Either`) | Erros específicos |
 | --- | --- | --- | --- | --- |
-| `RecordAttendanceUseCase` | `record-attendance.ts` | `turmaId`, `disciplinaId`, `date`, `records: { studentId, status }[]`, `recordedBy` | `Either<InvalidCalendarDateError, { records: AttendanceRecord[] }>` | `invalid-calendar-date-error.ts` |
+| `RecordAttendanceUseCase` | `record-attendance.ts` | `turmaId`, `disciplinaId`, `date`, `records: { studentId, status }[]`, `recordedBy`, `teacherId?` | `Either<InvalidCalendarDateError \| NotAllowedError, { records: AttendanceRecord[] }>` | `invalid-calendar-date-error.ts` |
 | `GetAttendanceBelowThresholdUseCase` | `get-attendance-below-threshold.ts` | `turmaId`, `thresholdPercentage` | `Either<ResourceNotFoundError, { students: { studentId: string; percentage: number }[] }>` | — |
 | `JustifyAbsenceUseCase` | `justify-absence.ts` | `attendanceRecordId`, `justification`, `justifiedBy` | `Either<ResourceNotFoundError \| AbsenceAlreadyJustifiedError, { record: AttendanceRecord }>` | `absence-already-justified-error.ts` |
 
 Ports (`application/repositories/`): `AttendanceRecordsRepository` — inclui `findByTurmaAndDate(turmaId, disciplinaId, date)`, `calculatePercentage(studentId, turmaId): Promise<number>` (usado tanto pelo use case de limiar quanto futuramente pelo `AttendanceStatsProvider` de `F1-E02`).
 
 Regras de negócio principais:
-- `RecordAttendanceUseCase`: grava em lote um registro por aluno da turma para a mesma `(turmaId, disciplinaId, date)`; se já existir chamada para essa combinação, sobrescreve os registros existentes (idempotente); valida a data contra o calendário letivo antes de salvar qualquer registro.
+- `RecordAttendanceUseCase`: grava em lote um registro por aluno da turma para a mesma `(turmaId, disciplinaId, date)`; se já existir chamada para essa combinação, sobrescreve os registros existentes (idempotente); valida a data contra o calendário letivo antes de salvar qualquer registro. Quando `teacherId` é informado (o controller só o passa se o ator autenticado tiver papel `professor`, não `secretaria`/`coordenação`), exige `HorariosRepository.existsActiveFor(teacherId, turmaId, disciplinaId, date)` (de `F1-E05`) antes de gravar — senão `NotAllowedError`. Evita que um professor registre chamada de uma turma/disciplina onde não leciona, mesmo tendo o papel correto.
 - `GetAttendanceBelowThresholdUseCase`: calcula `calculatePercentage` por aluno ativo da turma e retorna só os abaixo de `thresholdPercentage`.
 - `JustifyAbsenceUseCase`: só aceita registros com `status = 'ABSENT'`; grava auditoria mínima (`justifiedBy`, `justifiedAt`) — trilha de auditoria completa/consultável fica em `F1-E09`, aqui só os campos na própria entidade.
 
@@ -113,7 +113,7 @@ Perfis exigidos: `RecordAttendanceUseCase` → `professor` da turma; `GetAttenda
 
 - Repositório in-memory: `in-memory-attendance-records-repository.ts`.
 - Factory: `make-attendance-record.ts`.
-- Unit specs: bloqueio por data fora do calendário letivo (`RecordAttendanceUseCase`), cálculo de percentual e filtro por limiar (`GetAttendanceBelowThresholdUseCase`), transição inválida para justificar falta já justificada ou presença (`JustifyAbsenceUseCase`).
+- Unit specs: bloqueio por data fora do calendário letivo (`RecordAttendanceUseCase`), professor sem horário vigente naquela turma/disciplina/data → `NotAllowedError` (`RecordAttendanceUseCase`, usando o `in-memory-horarios-repository.ts` de `F1-E05`), cálculo de percentual e filtro por limiar (`GetAttendanceBelowThresholdUseCase`), transição inválida para justificar falta já justificada ou presença (`JustifyAbsenceUseCase`).
 - E2E: um `.e2e-spec.ts` por controller listado na seção HTTP.
 
 ## Definition of Done

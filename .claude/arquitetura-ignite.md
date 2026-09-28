@@ -127,10 +127,10 @@ export abstract class QuestionsRepository {
 - **Validação com Zod** (sem `class-validator`/`class-transformer`): schema `z.object({...})` no escopo do módulo, aplicado via `ZodValidationPipe` custom (`infra/http/pipes/zod-validation-pipe.ts`), erros formatados com `zod-validation-error`.
 - Controller injeta a **classe concreta** do use case (não uma interface — use cases são providers diretos), chama `.execute()`, verifica `result.isLeft()` e lança `HttpException` apropriada.
 - **Presenters** (`infra/http/presenters/`): `toHTTP(entity)` estático, converte entidade de domínio em JSON de resposta.
-- **Autenticação**: JWT RS256 via Passport (`infra/auth/`):
-  - `JwtStrategy` valida payload com schema Zod, chave pública lida do env (base64).
+- **Autenticação**: access token JWT RS256 (15 min) + refresh token opaco rotativo (7 dias) via Passport (`infra/auth/`) — detalhe completo de emissão/renovação em [F1-E10](docs/features/F1-E10-identidade-acesso/spec-identidade-acesso.md):
+  - `JwtStrategy` valida o access token com schema Zod, chave pública lida do env (base64). Payload: `{ sub, groupId, schoolId }` (ver §11 — uma sessão vale para uma escola).
   - `JwtAuthGuard` registrado globalmente (`APP_GUARD`) — toda rota exige autenticação por padrão, exceto as marcadas com decorator `@Public()`.
-  - `@CurrentUser()` decorator extrai o payload do usuário autenticado (`{ sub: string }`).
+  - `@CurrentUser()` decorator extrai o payload do usuário autenticado (`{ sub, groupId, schoolId }`).
 
 ## 7. Organização de módulos NestJS
 
@@ -157,6 +157,8 @@ export abstract class QuestionsRepository {
 | Validação | `zod`, `zod-validation-error` |
 | Hash | `bcryptjs` |
 | Storage | `@aws-sdk/client-s3`, `multer` (Cloudflare R2, API compatível com S3) |
+| Segurança de borda | `helmet`, `@nestjs/throttler` (ver §12) |
+| E-mail | `nodemailer` (ver [F1-E10](docs/features/F1-E10-identidade-acesso/spec-identidade-acesso.md) — módulo usado pela recuperação de senha, atrás de flag) |
 | Testes | `vitest`, `@nestjs/testing`, `supertest`, `@faker-js/faker` |
 
 ## 10. Configuração de ambiente
@@ -175,16 +177,21 @@ escola isolada (o campo `type` é só um rótulo informativo, não muda o compor
 tem uma ou mais `School` (escolas). Bounded context `tenancy` — ver
 [`F1-E0A`](docs/features/F1-E0A-tenancy/spec-tenancy.md) para o detalhe de implementação.
 
-### Duas dimensões, dois papéis diferentes
+### Três dimensões, três papéis diferentes
 
 - **`groupId` — isolamento (boundary de segurança).** Todo model de negócio carrega `groupId`.
   Nenhum usuário de um `Group` pode ler ou escrever dado de outro `Group`, sem exceção.
-- **`schoolId` — escopo de permissão (visibilidade dentro do tenant).** Nas tabelas operacionais
-  (`Student`, `Teacher`, `Turma`, `Invoice`, etc.), `schoolId` decide **quais escolas do próprio
-  Group** o usuário autenticado enxerga. Um papel *group-wide* (ex.: mantenedora/admin do Group)
-  vê todas as escolas; um papel *school-scoped* (ex.: diretor de uma unidade) só vê a(s) escola(s)
-  atribuída(s) a ele. Essa distinção é decidida por `UserRole.schoolId` (`null` = group-wide;
-  preenchido = restrito), modelado em `F1-E09`.
+- **`schoolId` — a escola da sessão atual.** **Uma sessão sempre pertence a exatamente uma
+  escola** (decisão de produto: quem atua em várias escolas do mesmo group — professor, diretor de
+  rede — faz login separado em cada uma; não existe visão "todas as escolas de uma vez" no MVP —
+  isso é a `F2-E07`, Multiunidade). Nas tabelas operacionais (`Student`, `Teacher`, `Turma`,
+  `Invoice`, etc.), `schoolId` é sempre o da sessão corrente, nunca uma lista. Um `UserRole` sem
+  `schoolId` (*group-wide*, ex.: mantenedora/admin do Group) significa que o usuário **pode logar
+  em qualquer escola do Group**, não que ele vê todas de uma vez — modelado em `F1-E09`.
+- **`allowedStudentIds` — restrição por aluno (IDOR).** Para papéis `RESPONSAVEL`/`ALUNO`, a
+  sessão também carrega quais alunos aquele usuário pode enxergar — sem isso, nada impede um
+  responsável de trocar o `studentId` na URL e ler o boletim de outro aluno da mesma escola.
+  Resolvido em `F1-E09`.
 
 ### `GroupContext` (`AsyncLocalStorage`)
 
@@ -194,29 +201,44 @@ requisição:
 ```ts
 type GroupContext = {
   groupId: string
-  allowedSchoolIds: string[] | null // null = acesso a todas as escolas do group
+  schoolId: string
+  allowedStudentIds: string[] | null // null = sem restrição (equipe da escola); [] = nenhum aluno
 }
 ```
 
-- `GroupScopeGuard` (`infra/auth/`) roda **depois** do `JwtAuthGuard`: lê `groupId` do payload do
-  JWT, busca os `UserRole` do usuário para montar `allowedSchoolIds`, e popula o ALS para a duração
-  da requisição.
-- Rotas de onboarding (`RegisterGroupUseCase`, `RegisterSchoolUseCase`, criação do primeiro usuário
-  admin) rodam **fora** deste contexto (equivalentes a `@Public()` ou um guard próprio de signup).
+- `GroupScopeGuard` (`infra/auth/`) roda **depois** do `JwtAuthGuard`: lê `groupId`/`schoolId` do
+  payload do access token, resolve `allowedStudentIds` (via `UserRolesRepository`/vínculo
+  aluno↔responsável, `F1-E09`) e popula o ALS para a duração da requisição.
+- Rotas públicas que ainda não têm sessão (branding do tenant, login, refresh, onboarding) rodam
+  **fora** deste guard, algumas delas dentro de um `GroupContext` **preliminar** só com `groupId`
+  (resolvido a partir do slug da URL, ver `Group.slug`/`School.slug` abaixo) — o suficiente para
+  localizar o usuário/grupo sem expor nada de outro tenant.
+- Onboarding de `Group`/`School` (criação da primeira escola de um cliente) roda atrás de
+  `PlatformAdminGuard` (chave de administrador da plataforma, `F1-E0A`) — não é mais um "guard de
+  signup" a definir depois, é a mesma trava usada desde o início.
 
 ### Enforcement via Prisma Client Extension
 
 Uma única `$extends` (`infra/database/prisma/extensions/tenant-scope.extension.ts`) intercepta
 toda query dos models de negócio:
 
-- **Leitura:** injeta `where: { groupId }`; se o model tem `schoolId` e `allowedSchoolIds != null`,
-  injeta também `where: { schoolId: { in: allowedSchoolIds } }`.
-- **Escrita (`create`/`createMany`):** injeta `data: { groupId }` automaticamente. `schoolId` **não**
-  é auto-injetado em escrita — cada use case recebe/valida explicitamente qual escola está sendo
-  usada (deve pertencer ao `groupId` corrente e, se `allowedSchoolIds != null`, estar contida nele).
+- **Leitura:** injeta `where: { groupId }`; se o model tem `schoolId`, injeta também
+  `where: { schoolId }` (o da sessão, sempre um valor único — não uma lista). Se
+  `allowedStudentIds !== null`: filtra `Student` por `id` e qualquer outro model por `studentId`.
+- **Escrita (`create`/`createMany`):** injeta `data: { groupId }` e, quando o model tem a coluna,
+  `data: { schoolId }` automaticamente — os dois vêm sempre do `GroupContext`, nunca do
+  corpo/param da requisição. Isso elimina a necessidade de um helper tipo "assert escola no
+  escopo": como só existe uma escola por sessão, não há lista contra a qual validar.
 
 Isso garante que nenhum repositório "esqueça" de filtrar — o isolamento e o escopo são uma
 propriedade da camada de infra, não uma disciplina que cada repositório precisa lembrar de aplicar.
+
+### Personalização por tenant (slugs)
+
+`Group.slug` (único global) e `School.slug` (único por group) identificam o tenant na própria URL
+do `conaa-web`: `app/[grupo]/[escola]/…` (ver `arquitetura-frontend.md` §2). Uma rota pública
+(`GET /public/branding/:groupSlug/:schoolSlug`, `F1-E0A`) devolve nome/logo/cor para a tela de
+login montar a identidade visual antes de qualquer autenticação.
 
 ### Convenções derivadas
 
@@ -225,14 +247,53 @@ propriedade da camada de infra, não uma disciplina que cada repositório precis
   (são elas próprias a raiz da hierarquia).
 - **Domínio (`enterprise`):** entidades recebem `groupId` (e `schoolId`, quando aplicável) como
   props normais, setadas a partir do `GroupContext` no `execute()` do use case — nunca hardcoded,
-  nunca aceitas cruas de um DTO de entrada não confiável.
+  nunca aceitas cruas de um DTO de entrada não confiável. Use cases de escrita **não** recebem
+  `schoolId` como parâmetro de entrada (era assim antes de `F1-E10`; o `GroupContext` já resolve).
 - **Unicidade:** índices únicos que hoje seriam globais (CPF, `RoleName`) passam a ser compostos
   com `groupId` (único **por group**, não globalmente). Índices que fazem sentido por escola (ex.:
-  `SchoolYear.year`) são compostos com `schoolId`.
-- **Testes:** repositórios in-memory replicam o filtro de `groupId`/`allowedSchoolIds` manualmente
-  (sem a Prisma extension) para os unit specs continuarem provando isolamento/escopo sem banco.
-- **JWT:** payload passa a incluir `groupId` (e a lista de `UserRole` é resolvida via banco no
-  `GroupScopeGuard`, não embutida no token, para revogação de acesso ser imediata).
+  `SchoolYear.year`) são compostos com `schoolId`. `User.email` (`F1-E10`) é único **por group** —
+  um mesmo e-mail pode ter contas independentes em groups diferentes (ex.: um professor que
+  leciona em duas secretarias distintas). `Group.slug` é a única unicidade **global** do sistema.
+- **Testes:** repositórios in-memory replicam o filtro de `groupId`/`schoolId`/`allowedStudentIds`
+  manualmente (sem a Prisma extension) para os unit specs continuarem provando isolamento/escopo
+  sem banco.
+- **Sessão:** o access token carrega `groupId` e `schoolId`; `allowedStudentIds` é resolvido via
+  banco a cada requisição (`GroupScopeGuard`), nunca embutido no token, para revogação de acesso
+  ser imediata. Detalhe completo de emissão/renovação de sessão em `F1-E10`.
+
+## 12. Segurança de aplicação (baseline)
+
+Baseline aplicado desde `F1-E00` (bootstrap) e válido para todos os épicos seguintes — não é uma
+ficha própria, é uma convenção transversal, como o multi-tenancy do §11.
+
+- **Headers e superfície de borda:** `helmet()` aplicado no `main.ts`. Sem `app.enableCors()` — o
+  `conaa-web` nunca é chamado direto do browser (padrão BFF, ver `arquitetura-frontend.md` §6), só
+  o servidor do Next chama a API, então CORS de browser não se aplica.
+- **Rate limiting:** `@nestjs/throttler` global — 100 req/min por IP nas rotas autenticadas, 5/min
+  nas rotas públicas sensíveis (`POST /sessions`, `/sessions/refresh`, `/password-resets`).
+  `ponytail:` armazenamento em memória do throttler; trocar por um storage compartilhado (Redis)
+  se a API rodar em mais de uma instância.
+- **`trust proxy`** ligado no Nest — necessário para o throttler e para logs enxergarem o IP real
+  atrás de um proxy/load balancer.
+- **Erros:** nunca repassar a mensagem de exceção interna ou do Prisma na resposta HTTP — o filtro
+  de exceção padrão do Nest já esconde o stack em produção; não criar um filtro global próprio só
+  para isso.
+- **Logs:** nunca logar senha, token (access/refresh), CPF ou o corpo bruto da requisição em rotas
+  de autenticação/dados pessoais.
+- **Senha:** hash com `bcryptjs`, custo 12. Política de tamanho (8–72 caracteres), sem exigir
+  regra de composição (maiúscula/número/símbolo) — critério do NIST 800-63B, que reduz atrito sem
+  perder segurança real.
+- **Segredos:** só via variável de ambiente (chave JWT, `PLATFORM_ADMIN_KEY`, credenciais de
+  banco/SMTP), nunca hardcoded ou versionado. `ponytail:` rotação de chave JWT ainda é manual (gerar
+  par novo, atualizar env, reiniciar); migrar para múltiplas chaves ativas com `kid` no header do
+  JWT se for preciso rotacionar sem derrubar sessões em andamento.
+- **Dependências:** `pnpm audit --prod --audit-level=high` rodado no CI (ver `F1-E00`) — falha o
+  build em vulnerabilidade `high`/`critical` conhecida em dependência de produção.
+- **Dados em trânsito e em repouso (produção):** `DATABASE_URL` com `sslmode=require` (TLS na
+  conexão com o Postgres); criptografia em repouso do disco/backup confirmada como ativa no
+  provedor gerenciado escolhido (GCP/AWS/DigitalOcean) — não é criptografia de coluna (isso
+  quebraria os índices únicos por `groupId`, como o de CPF). Backup com restauração testada
+  **fica fora do MVP**, registrado como pendência da Fase 2 em `ROADMAP.md`.
 
 ## O que aproveitar no `conaa-controle-escolar`
 

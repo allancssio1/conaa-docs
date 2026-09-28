@@ -62,6 +62,8 @@ Repositório `conaa-web`:
 ...                        ver .claude/arquitetura-frontend.md
 ```
 
+Nas fichas de feature, caminhos de rota escritos como `app/(portal)/...`/`app/(public)/...` são relativos a `app/[grupo]/[escola]/` — toda navegação do `conaa-web` fica sob o tenant identificado na URL (ver [.claude/arquitetura-frontend.md §2](.claude/arquitetura-frontend.md#2-estrutura-de-pastas)).
+
 Este repositório (`conaa-controle-escolar`):
 
 ```
@@ -87,7 +89,7 @@ Cada contexto vive em `conaa-api/src/domain/<contexto>/`. Mapeamento épico → 
 | `assessment` | F1-E04 | Notas, boletins |
 | `finance` | F1-E06 | Mensalidades, cobranças, inadimplência |
 | `reporting` | F1-E07 | Relatórios administrativos e oficiais |
-| `iam` | F1-E09 | Perfis de acesso, auditoria, consentimento LGPD |
+| `iam` | F1-E10, F1-E09 | Contas de acesso/sessão (F1-E10); perfis de acesso, auditoria, consentimento e direitos do titular LGPD (F1-E09) |
 | `communication` | F2-E02 | Comunicação multicanal e notificações |
 
 Novos contextos são adicionados conforme novas fichas forem criadas nas fases seguintes.
@@ -96,7 +98,8 @@ Novos contextos são adicionados conforme novas fichas forem criadas nas fases s
 
 (Resumo — a fonte de verdade é [.claude/arquitetura-ignite.md](.claude/arquitetura-ignite.md), leia-a antes de implementar.)
 
-- **Multi-tenancy é fundacional, não opcional:** todo model de negócio carrega `groupId`; models operacionais também carregam `schoolId`. Toda query passa pelo `GroupContext`/Prisma extension — nunca aceitar `groupId`/`schoolId` vindos do corpo/param da requisição como fonte de autoridade. Ver [.claude/arquitetura-ignite.md §11](.claude/arquitetura-ignite.md#11-multi-tenancy-fundacional-desde-o-dia-zero) e [F1-E0A](.claude/docs/features/F1-E0A-tenancy/spec-tenancy.md).
+- **Multi-tenancy é fundacional, não opcional:** todo model de negócio carrega `groupId`; models operacionais também carregam `schoolId`. Toda query passa pelo `GroupContext`/Prisma extension — nunca aceitar `groupId`/`schoolId` vindos do corpo/param da requisição como fonte de autoridade. Uma sessão é sempre de **uma única escola** (sem `allowedSchoolIds`); rota pública sem sessão (login, branding, onboarding) só existe com `@Public()` + `@Throttle`, e onboarding de `Group`/`School` exige `PlatformAdminGuard`. Ver [.claude/arquitetura-ignite.md §11](.claude/arquitetura-ignite.md#11-multi-tenancy-fundacional-desde-o-dia-zero) e [F1-E0A](.claude/docs/features/F1-E0A-tenancy/spec-tenancy.md).
+- **Dado de aluno é restrito por vínculo, não só por escola:** o `GroupContext` também carrega `allowedStudentIds` (responsável/aluno só enxergam quem tem vínculo — ver [F1-E09](.claude/docs/features/F1-E09-seguranca-lgpd/spec-seguranca-lgpd.md)). Nunca logar senha, token ou CPF — ver [.claude/arquitetura-ignite.md §12](.claude/arquitetura-ignite.md#12-segurança-de-aplicação-baseline).
 - Erros de negócio esperados → `Either<Error, Success>` (`left`/`right`), nunca `throw`.
 - Repositórios são `abstract class` em `application/repositories/` (não `interface`) — servem de token de DI.
 - 1 arquivo por use case em `application/useCases/`, nome kebab-case, classe `XxxUseCase`.

@@ -25,9 +25,9 @@ Gerar relatórios operacionais filtráveis (listas de alunos, frequência, notas
 
 Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite.md#11-multi-tenancy-fundacional-desde-o-dia-zero) e [`F1-E0A`](../F1-E0A-tenancy/spec-tenancy.md). Específico deste épico:
 
-- Todo `Generate*ReportUseCase` já herda o filtro de `groupId`/`allowedSchoolIds` da Prisma extension através dos repositórios injetados — nenhum filtro manual de tenant precisa ser escrito nos use cases de relatório em si, só os filtros de negócio (`turmaId`, `serieId`, `período`).
-- **Censo Escolar/INEP é por escola**, não por group — cada escola tem seu próprio código INEP (`School.inepCode`, de `F1-E0A`). `ExportCensoEscolarUseCase` recebe `schoolId` (não só `schoolYearId`) e gera um arquivo por escola; se o usuário tiver acesso a várias escolas, a tela do frontend oferece exportar uma de cada vez ou em lote (decisão de UX, não de use case).
-- `GenerateFinalResultsReportUseCase`/demais relatórios filtráveis por "turma/série" só listam turmas/séries dentro do escopo de escolas do usuário — resultado natural do filtro de `EnrollmentsRepository`/`TurmasRepository`, sem lógica extra.
+- Todo `Generate*ReportUseCase` já herda o filtro de `groupId`/`schoolId` da Prisma extension através dos repositórios injetados — nenhum filtro manual de tenant precisa ser escrito nos use cases de relatório em si, só os filtros de negócio (`turmaId`, `serieId`, `período`).
+- **Censo Escolar/INEP é por escola**, não por group — cada escola tem seu próprio código INEP (`School.inepCode`, de `F1-E0A`). `ExportCensoEscolarUseCase` **não** recebe `schoolId` como parâmetro — usa o da sessão corrente, igual a qualquer outro use case de leitura (uma sessão é sempre de uma escola, ver `arquitetura-ignite.md` §11). Exportar o Censo de outra escola do mesmo group exige logar naquela escola.
+- `GenerateFinalResultsReportUseCase`/demais relatórios filtráveis por "turma/série" só listam turmas/séries da escola da sessão — resultado natural do filtro de `EnrollmentsRepository`/`TurmasRepository`, sem lógica extra.
 
 ## Modelo de domínio (`enterprise`)
 
@@ -44,7 +44,7 @@ Mecanismo completo em [`arquitetura-ignite.md` §11](../../../arquitetura-ignite
 | `GenerateGradesReportUseCase` | `generate-grades-report.ts` | `turmaId?`, `serieId?`, `period?` | `GradesRepository`, `AssessmentsRepository` | `Either<never, { rows: GradesReportRow[] }>` |
 | `GenerateFinalResultsReportUseCase` | `generate-final-results-report.ts` | `turmaId?`, `serieId?`, `schoolYearId` | `EnrollmentsRepository` | `Either<never, { rows: FinalResultReportRow[] }>` |
 | `GenerateDelinquencyReportUseCase` | `generate-delinquency-report.ts` | `turmaId?`, `serieId?`, `period?` | `InvoicesRepository` (mesma agregação de `GetFinancialStatusUseCase` de `F1-E06`, reaproveitar via injeção do repositório, não duplicar lógica) | `Either<never, { rows: DelinquencyReportRow[] }>` |
-| `ExportCensoEscolarUseCase` | `export-censo-escolar.ts` | `schoolId`, `schoolYearId` | `StudentsRepository`, `EnrollmentsRepository` | `Either<IncompleteCensusDataError, { records: CensoRecord[] }>` |
+| `ExportCensoEscolarUseCase` | `export-censo-escolar.ts` | `schoolYearId` | `StudentsRepository`, `EnrollmentsRepository` | `Either<IncompleteCensusDataError, { records: CensoRecord[] }>` |
 
 `*ReportRow`/`CensoRecord` são tipos simples (DTOs) declarados junto de cada use case, não entidades de domínio.
 
@@ -65,7 +65,7 @@ Nenhum novo model. Os repositórios usados já existem (`F1-E01`, `F1-E02`, `F1-
 | `GET /reports/grades` | `generate-grades-report.controller.ts` | `turmaId?, serieId?, period?, format` | arquivo |
 | `GET /reports/final-results` | `generate-final-results-report.controller.ts` | `turmaId?, serieId?, schoolYearId, format` | arquivo |
 | `GET /reports/delinquency` | `generate-delinquency-report.controller.ts` | `turmaId?, serieId?, period?, format` | arquivo |
-| `GET /reports/censo-escolar` | `export-censo-escolar.controller.ts` | `schoolId, schoolYearId, format=csv` | arquivo CSV |
+| `GET /reports/censo-escolar` | `export-censo-escolar.controller.ts` | `schoolYearId, format=csv` | arquivo CSV |
 
 Geração de arquivo: PDF reaproveita a mesma lib decidida em `F1-E04` (`pdf-lib` ou equivalente definido no bootstrap); planilha usa `exceljs` (XLSX) ou `csv-stringify` (CSV) — preferir `csv-stringify` para o Censo por ser o formato mais comum de importação em sistemas do MEC, e `exceljs` só para os relatórios operacionais que pedem XLSX explicitamente.
 
