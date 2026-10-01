@@ -16,13 +16,13 @@
 
 Criar **dois repositórios git independentes** — `conaa-api` (backend) e `conaa-web` (frontend) — com toda a fundação técnica descrita em [arquitetura-ignite.md](../../../arquitetura-ignite.md) (backend) e [arquitetura-frontend.md](../../../arquitetura-frontend.md) (frontend), **sem nenhuma regra de negócio ainda**. Ao final desta ficha, `F1-E01` (e as demais) só precisam adicionar código de domínio sobre uma base já funcional em cada repositório.
 
-Este repositório (`conaa-controle-escolar`) não recebe código nesta ficha — ele continua sendo só o hub de documentação/planejamento.
+Este repositório (`conaa-docs`) não recebe código nesta ficha — ele continua sendo só o hub de documentação/planejamento.
 
 ## Escopo
 
 ### Repositórios
 
-- [ ] Criar os 2 repositórios git: `conaa-api` e `conaa-web`, cada um independente (histórico, versionamento e deploy próprios).
+- [ ] Criar os 2 repositórios git `conaa-api` e `conaa-web` **como pastas irmãs de `conaa-docs`, dentro de `conaa-controle-escolar/`** (`git init` em cada uma), cada um independente (histórico, versionamento e deploy próprios).
 - [ ] Em cada repositório: `package.json` próprio com scripts (`dev`, `build`, `test`, `lint`), lint/format próprio (ESLint + Prettier) e `.gitignore` cobrindo `node_modules`, `dist`/`.next`, `.env`.
 - [ ] Não há ferramenta de workspace/monorepo (pnpm workspaces, turborepo etc.) — cada repositório é standalone e resolve suas próprias dependências.
 

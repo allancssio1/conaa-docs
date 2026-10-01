@@ -31,9 +31,20 @@ CONAA é um Sistema de Gestão Escolar (SGE) brasileiro. O escopo completo (o "o
   ```
 
 - **Frontend:** Next.js 16.3.
-- **Dois repositórios de código separados** — `conaa-api` (backend) e `conaa-web` (frontend), criados pela ficha `.claude/docs/features/F1-E00-bootstrap/epic.md`. Este repositório (`conaa-controle-escolar`) é o **hub de documentação/planejamento** — não contém código de aplicação, só `.claude/` e este `CLAUDE.md`.
+- **Três repositórios git independentes, lado a lado** dentro da pasta de trabalho `conaa-controle-escolar/` (que não é repo git, só agrupa): `conaa-docs` (este — hub de documentação/planejamento, sem código de aplicação, só `.claude/` e este `CLAUDE.md`), `conaa-api` (backend) e `conaa-web` (frontend). `conaa-api`/`conaa-web` são criados pela ficha `.claude/docs/features/F1-E00-bootstrap/epic.md` **como irmãos de `conaa-docs`, nunca dentro dele**. Sem ferramenta de monorepo — cada repo resolve suas próprias dependências.
 
 ## Mapa de pastas
+
+Layout em disco (workspace):
+
+```
+conaa-controle-escolar/      ← pasta de trabalho (sem git próprio)
+  conaa-docs/                ← repo git: docs e planejamento (este)
+  conaa-api/                 ← repo git: NestJS + Prisma
+  conaa-web/                 ← repo git: Next.js 16.3
+```
+
+Caminhos que começam com `conaa-api/` ou `conaa-web/` nas fichas são relativos à raiz do workspace (`conaa-controle-escolar/`) — ou seja, `../conaa-api/...` visto de dentro do `conaa-docs`. Nunca crie esses diretórios dentro do `conaa-docs`.
 
 Repositório `conaa-api`:
 
@@ -64,7 +75,7 @@ Repositório `conaa-web`:
 
 Nas fichas de feature, caminhos de rota escritos como `app/(portal)/...`/`app/(public)/...` são relativos a `app/[grupo]/[escola]/` — toda navegação do `conaa-web` fica sob o tenant identificado na URL (ver [.claude/arquitetura-frontend.md §2](.claude/arquitetura-frontend.md#2-estrutura-de-pastas)).
 
-Este repositório (`conaa-controle-escolar`):
+Este repositório (`conaa-docs`):
 
 ```
 CLAUDE.md
